@@ -1,5 +1,6 @@
-# clipper_test_qt
-Clipper Lib example in Qt (Linux)  
-Qt 5.7.1  
-Clipper Version: 6.1.3  
+# Clipper example in Qt (Linux)
+Qt version 5.7.1  
+Clipper library version: 6.1.3  
+  
 ![](example.gif)  
+  
