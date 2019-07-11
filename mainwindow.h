@@ -3,14 +3,11 @@
 
 #include <QDebug>
 #include <QMainWindow>
-#include <QPainter>
 #include <QGraphicsView>
 #include <QGraphicsScene>
-#include <QGraphicsItem>
-#include <QMouseEvent>
 #include <QGraphicsTextItem>
+#include <QMouseEvent>
 
-#include <vector>
 #include <math.h>
 
 #include <clipper.hpp>
@@ -38,6 +35,7 @@ private:
     QGraphicsTextItem *textItem;
 
     QPen pen;
+    QBrush brush;
 
     // QWidget interface
 protected:
