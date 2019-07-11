@@ -263,7 +263,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     int g_y = event->pos().y();
     qDebug().noquote() << g_x << g_y;
 
-    QPolygon solution_poly;
     Paths circlePath(1), new_solution;
 
 
@@ -276,12 +275,18 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
     *mainPath = new_solution;
 
-    for(unsigned int i = 0; i < new_solution.at(0).size(); i++) {
-        solution_poly.append(QPoint((int)new_solution[0][i].X, (int)new_solution[0][i].Y));
+    QPolygon solution_poly[new_solution.size()];
+
+    for(unsigned int i = 0; i < new_solution.size(); i++) {
+        for(unsigned int j = 0; j < new_solution[i].size(); j++) {
+            solution_poly[i].append(QPoint((int)new_solution[i][j].X, (int)new_solution[i][j].Y));
+        }
     }
 
     scene->clear();
-    scene->addPolygon(solution_poly, Qt::NoPen, QBrush(Qt::magenta));
+    for(unsigned int i = 0; i < new_solution.size(); i++) {
+        scene->addPolygon(solution_poly[i], Qt::NoPen, QBrush(Qt::magenta));
+    }
 
     scene->addEllipse(g_x - 5, g_y - 5, 10, 10, QPen(Qt::black), QBrush(Qt::gray));
 }
