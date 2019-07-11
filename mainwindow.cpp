@@ -257,7 +257,6 @@ void MainWindow::make_it(int g_x, int g_y)
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-
     event->accept();
     int g_x = event->pos().x();
     int g_y = event->pos().y();
@@ -289,4 +288,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     }
 
     scene->addEllipse(g_x - 5, g_y - 5, 10, 10, QPen(Qt::black), QBrush(Qt::gray));
+
+    qDebug().noquote() << new_solution.size() << "polygons";
+
+    QGraphicsTextItem *textItem = new QGraphicsTextItem(QString("Number of polygons: ") + QString::number(new_solution.size()));
+    textItem->setPos(5, 5);
+    scene->addItem(textItem);
+
+    //scene->addText(QString("Number of polygons: " + QString::number(new_solution.size())),);
 }

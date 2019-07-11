@@ -8,6 +8,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QMouseEvent>
+#include <QGraphicsTextItem>
+
 #include <vector>
 #include <math.h>
 
