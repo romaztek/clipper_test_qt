@@ -15,8 +15,6 @@
 
 #include <clipper.hpp>
 
-#include <myscene.h>
-
 using namespace ClipperLib;
 
 namespace Ui {
@@ -30,17 +28,16 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    MyScene *scene = nullptr;
+    QGraphicsScene *scene = nullptr;
 
     void Circle(int _x, int _y, int _r, Paths *path);
 
 private:
     Ui::MainWindow *ui;
     Paths *mainPath;
+    QGraphicsTextItem *textItem;
 
-public slots:
-    void make_it(int g_x, int g_y);
-
+    QPen pen;
 
     // QWidget interface
 protected:
@@ -48,3 +45,6 @@ protected:
 };
 
 #endif // MAINWINDOW_H
+
+
+

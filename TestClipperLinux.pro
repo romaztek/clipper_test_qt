@@ -24,15 +24,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    myscene.cpp
+        mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    myscene.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
-unix:!macx: LIBS += -L$$PWD/../Clipper/cpp/build/ -lpolyclipping
+unix:!macx: LIBS += -L$$PWD/Clipper/ -lpolyclipping
 
-INCLUDEPATH += $$PWD/../Clipper/cpp
-DEPENDPATH += $$PWD/../Clipper/cpp
+INCLUDEPATH += $$PWD/Clipper
+DEPENDPATH += $$PWD/Clipper
