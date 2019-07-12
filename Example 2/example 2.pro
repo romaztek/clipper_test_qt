@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = TestClipperLinux
+TARGET = example_2
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -30,7 +30,8 @@ HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
-unix:!macx: LIBS += -L$$PWD/Clipper/ -lpolyclipping
+unix:!macx: LIBS += -L$$PWD/../Clipper/ -lpolyclipping
 
-INCLUDEPATH += $$PWD/Clipper
-DEPENDPATH += $$PWD/Clipper
+INCLUDEPATH += $$PWD/../Clipper
+DEPENDPATH += $$PWD/../Clipper
+

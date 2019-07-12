@@ -2,5 +2,5 @@
 Qt version 5.7.1  
 Clipper library version: 6.1.3  
   
-![](example.gif)  
+![](example_1.gif)  
   
