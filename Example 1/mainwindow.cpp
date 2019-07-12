@@ -7,6 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setFixedSize(this->width(), this->height());
+
     scene = new QGraphicsScene(0, 0, 640, 480);
 
     QGraphicsView *view = this->findChild<QGraphicsView*>("graphicsView");
