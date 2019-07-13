@@ -15,8 +15,9 @@
 
 #include <math.h>
 
-#include <clipper.hpp>
 #include <Box2D/Box2D.h>
+#include <clipper.hpp>
+#include <poly2tri.h>
 
 #include "wall.h"
 #include "polygonbody.h"

@@ -16,7 +16,11 @@ PolygonBody::PolygonBody(b2Vec2 *_vertices, size_t _count, b2Vec2 _position, b2W
     b2PolygonShape polygonShape;
     polygonShape.Set(_vertices, _count); //pass array to the shape
 
-    qDebug().noquote() << "passed to polydonBody" << _count << _position.x << _position.y;
+    //qDebug().noquote() << "passed to polydonBody count|x|y" << _count << _position.x << _position.y;
+
+    /*for(unsigned int i = 0; i < count; i++) {
+        qDebug().noquote() << "passed to polydonBody vertices" << _vertices[i].x << _vertices[i].y;
+    }*/
 
     b2FixtureDef myFixtureDef;
     myFixtureDef.density = 0.2f;

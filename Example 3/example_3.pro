@@ -36,18 +36,22 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-unix:!macx: LIBS += -L$$PWD/../Clipper/ -lpolyclipping
+unix:!macx: LIBS += -L$$PWD/../Clipper/ -lpolyclipping \
+		    -L$$PWD/../Box2D/ -lBox2D \
+		    -L$$PWD/../Poly2Tri/ -lpoly2tri
 
-INCLUDEPATH += $$PWD/../Clipper
-DEPENDPATH += $$PWD/../Clipper
+INCLUDEPATH +=	$$PWD/../Clipper \
+		$$PWD/../ \
+		$$PWD/../Poly2Tri/poly2tri
+
+DEPENDPATH +=	$$PWD/../Clipper \
+		$$PWD/../ \
+		$$PWD/../Poly2Tri/poly2tri
+
+unix:!macx: PRE_TARGETDEPS +=	$$PWD/../Box2D/libBox2D.a \
+				$$PWD/../Poly2Tri/libpoly2tri.a
 
 
 
-unix:!macx: LIBS += -L$$PWD/../Box2D/ -lBox2D
-
-INCLUDEPATH += $$PWD/../
-DEPENDPATH += $$PWD/../
-
-unix:!macx: PRE_TARGETDEPS += $$PWD/../Box2D/libBox2D.a
 
 
