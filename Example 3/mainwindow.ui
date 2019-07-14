@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>640</width>
-    <height>521</height>
+    <height>541</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,63 +45,102 @@
      <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
    </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>480</y>
+      <y>478</y>
       <width>641</width>
-      <height>41</height>
+      <height>61</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QGridLayout" name="gridLayout">
      <property name="leftMargin">
-      <number>4</number>
+      <number>5</number>
      </property>
      <property name="topMargin">
-      <number>4</number>
+      <number>5</number>
      </property>
      <property name="rightMargin">
-      <number>4</number>
+      <number>5</number>
      </property>
      <property name="bottomMargin">
-      <number>4</number>
+      <number>5</number>
      </property>
-     <item>
-      <widget class="QLabel" name="brush_label">
+     <item row="1" column="7">
+      <widget class="QPushButton" name="resetButton">
        <property name="text">
-        <string>Brush Witdh</string>
+        <string>Reset Terrain</string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QSlider" name="horizontalSlider">
-       <property name="minimum">
-        <number>8</number>
+     <item row="1" column="8">
+      <widget class="QPushButton" name="deleteCirclesButton">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
-       <property name="maximum">
-        <number>40</number>
-       </property>
-       <property name="value">
-        <number>16</number>
-       </property>
-       <property name="sliderPosition">
-        <number>16</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+       <property name="text">
+        <string>Delete Circles</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Brush Width</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" colspan="4">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QSlider" name="horizontalSlider">
+         <property name="minimum">
+          <number>8</number>
+         </property>
+         <property name="maximum">
+          <number>40</number>
+         </property>
+         <property name="value">
+          <number>16</number>
+         </property>
+         <property name="sliderPosition">
+          <number>16</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="6">
       <widget class="QLabel" name="width_label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>20</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="0">
       <widget class="QRadioButton" name="radioButtonMagenta">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>Magenta</string>
        </property>
@@ -113,58 +152,127 @@
        </attribute>
       </widget>
      </item>
-     <item>
-      <widget class="QRadioButton" name="radioButtonGreen">
-       <property name="text">
-        <string>Green</string>
-       </property>
-       <property name="autoExclusive">
-        <bool>false</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButtonRed">
-       <property name="text">
-        <string>Red</string>
-       </property>
-       <property name="autoExclusive">
-        <bool>false</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButtonOrange">
-       <property name="text">
-        <string>Orange</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButtonSteelBlue">
-       <property name="text">
-        <string>Steel Blue</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="resetButton">
-       <property name="text">
-        <string>Reset</string>
-       </property>
-      </widget>
+     <item row="0" column="2" colspan="7">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QRadioButton" name="radioButtonGreen">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Green</string>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButtonRed">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Red</string>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButtonOrange">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Orange</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButtonSteelBlue">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Steel Blue</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButtonCherry">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Cherry</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButtonWhite">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>White</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="radioButtonGrey">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Grey</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>

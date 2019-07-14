@@ -8,6 +8,7 @@
 #include <iterator>
 
 #include <QDebug>
+#include <QWidget>
 #include <QMainWindow>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -39,6 +40,7 @@ class Circle : public QGraphicsEllipseItem
 public:
     Circle(qreal radius, QPointF initPos, b2World *world);
     ~Circle();
+    int needDestroy = 0;
 private:
     b2Body *body;
 public:
@@ -78,11 +80,15 @@ public:
     void resetPolygon();
     void repaintPolygon();
 
+    void processTheTerrain(int mouse_x, int mouse_y);
+
 private:
     Ui::MainWindow *ui;
     Paths *mainPath;
 
-    QGraphicsTextItem *textItem;
+    QGraphicsTextItem *numberOfPolygonsTextItem;
+    QGraphicsTextItem *numberOfThrownDuplicateVerticesTextItem;
+
     QVector<QGraphicsPolygonItem*> polygonItem;
 
     QPen pen;
@@ -95,6 +101,7 @@ private:
     bool busy = false;
 
     int brush_width = 16;
+    int numberOfThrownDuplicateVertices = 0;
 
     QTimer *frameTimer;
 
@@ -108,11 +115,16 @@ protected:
 private slots:
     void on_horizontalSlider_valueChanged(int value);
     void on_resetButton_clicked();
+    void on_deleteCirclesButton_clicked();
+
     void on_radioButtonMagenta_toggled(bool checked);
     void on_radioButtonGreen_toggled(bool checked);
     void on_radioButtonRed_toggled(bool checked);
     void on_radioButtonOrange_toggled(bool checked);
     void on_radioButtonSteelBlue_toggled(bool checked);
+    void on_radioButtonCherry_toggled(bool checked);
+    void on_radioButtonWhite_toggled(bool checked);
+    void on_radioButtonGrey_toggled(bool checked);
 };
 
 
