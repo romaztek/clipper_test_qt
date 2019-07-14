@@ -1,6 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+
+#include <math.h>
+#include <set>
+#include <unordered_set>
+#include <iterator>
+
 #include <QDebug>
 #include <QMainWindow>
 #include <QGraphicsView>
@@ -12,8 +18,6 @@
 #include <QMouseEvent>
 #include <QTimer>
 #include <QPointF>
-
-#include <math.h>
 
 #include <Box2D/Box2D.h>
 #include <clipper.hpp>

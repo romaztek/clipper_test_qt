@@ -14,12 +14,27 @@ qreal toB2(qreal value) {
 
 QVector<PolygonBody*> myPolygonBodies;
 
+auto compPoint = [&](p2t::Point* const pointA, p2t::Point* const pointB) -> bool
+{
+    if (pointA->x < pointB->x) return true;
+    if (pointA->x > pointB->x) return false;
+    if (pointA->y < pointB->y) return true;
+    return false;
+};
+
+auto hash = [](const p2t::Point* pt){ return (size_t)(pt->x*100 + pt->y); };
+
+auto equal = [](const p2t::Point* pt1, const p2t::Point* pt2) {return ((pt1->x == pt2->x) && (pt1->y == pt2->y)); };
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     this->setFixedSize(this->width(), this->height());
+
+    this->setWindowFlags(Qt::WindowStaysOnTopHint);
+
 
     ui->horizontalSlider->setValue(BRUSH_WIDTH);
 
@@ -223,9 +238,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
         *mainPath = new_solution;       // After clipping: clipped polygon = main polygon (current polygon)
 
-
-        busy = true;
-
         foreach (PolygonBody *tmp_poly, myPolygonBodies) {
             tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
         }
@@ -245,92 +257,51 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             }
         }
 
-        // 222222222222222222222222222222222222222222222222222222222222222222222222
-
         std::vector<p2t::Point*> polylines[new_solution.size()];
         std::vector<p2t::Triangle*> triangles[new_solution.size()];
 
-        for(unsigned int i = 0; i < new_solution.size(); i++)
-        {
-            for(unsigned int j = 0; j < new_solution[i].size(); j++)
-            {
-                polylines[i].push_back(new p2t::Point((int)new_solution[i][j].X, (int)new_solution[i][j].Y));
-            }
-        }
-
         for(unsigned int sz = 0; sz < new_solution.size(); sz++)
         {
-             p2t::CDT cdt(polylines[sz]);
-             cdt.Triangulate();
-             triangles[sz] = cdt.GetTriangles();
+            std::set<p2t::Point*, decltype(compPoint)> sorted_lines(compPoint);
 
-             b2Vec2 triangle_vertices[3];
+            for(unsigned int j = 0; j < new_solution[sz].size(); j++)
+            {
+                auto result_dup = sorted_lines.insert(new p2t::Point((int)new_solution[sz][j].X, (int)new_solution[sz][j].Y));
 
-             for (p2t::Triangle *tri : triangles[sz])
-             {
-                 for (int i = 0; i < 3; ++i)
-                 {
-                     const p2t::Point &p = *tri->GetPoint(i);
-                     triangle_vertices[i].x = toB2(p.x) + 0.001f;
-                     triangle_vertices[i].y = toB2(p.y) + 0.001f;
+                if(!result_dup.second)
+                {
+                    qDebug().noquote() << "/////// DUPLICATE"
+                                       << new_solution[sz][j].X << (int)new_solution[sz][j].Y
+                                       << "THROWN --------------" << "\n";
 
-                     //qDebug().noquote() << "triangle" << i << p.x << p.y;
-                     //triangle_test_poly.append(QPoint(triangle_vertices[i].x, triangle_vertices[i].y));
-                 }
-                 myPolygonBodies.append(new PolygonBody(triangle_vertices, 3,
-                                                                    b2Vec2(0, 0), world));
-                 //polygonItem.append(scene->addPolygon(triangle_test_poly, pen, QBrush(Qt::gray)));
-
-             }
-        }
-
-
-        // 222222222222222222222222222222222222222222222222222222222222222222222222
-
-        /*
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        std::vector<p2t::Point*> polyline;
-        std::vector<p2t::Triangle*> triangles;
-
-        for(unsigned int i = 0; i < new_solution.size(); i++)
-        {
-            for(unsigned int j = 0; j < new_solution[0].size(); j++) {
-                polyline.push_back(new p2t::Point((int)new_solution[0][j].X, (int)new_solution[0][j].Y));
+                } else
+                    polylines[sz].push_back(new p2t::Point((int)new_solution[sz][j].X, (int)new_solution[sz][j].Y));
             }
-        }
-        //for(unsigned int i = 0; i < new_solution.size(); i++)
-        //{
-        //if(polyline.size() >= 3) {
-            p2t::CDT cdt(polyline);
-            cdt.Triangulate();
-            triangles = cdt.GetTriangles();
 
-            /// The polygon shape's vertices (actually a triangle)
+            p2t::CDT cdt(polylines[sz]);
+
+            //qDebug().noquote() << "D before trangulate";
+
+            cdt.Triangulate();
+            triangles[sz] = cdt.GetTriangles();
+
             b2Vec2 triangle_vertices[3];
 
-            /// Iterate over all triangles
-
-            for (p2t::Triangle *tri : triangles)
+            for (p2t::Triangle *tri : triangles[sz])
             {
                 for (int i = 0; i < 3; ++i)
                 {
-                    const p2t::Point &p = *tri->GetPoint(i);
-                    triangle_vertices[i].x = toB2(p.x) + 0.001f;
-                    triangle_vertices[i].y = toB2(p.y) + 0.001f;
+                 const p2t::Point &p = *tri->GetPoint(i);
+                 triangle_vertices[i].x = toB2(p.x);
+                 triangle_vertices[i].y = toB2(p.y);
 
-                    //qDebug().noquote() << "triangle" << i << p.x << p.y;
-                    //triangle_test_poly.append(QPoint(triangle_vertices[i].x, triangle_vertices[i].y));
+                 //qDebug().noquote() << "triangle" << i << p.x << p.y;
+                 //triangle_test_poly.append(QPoint(triangle_vertices[i].x, triangle_vertices[i].y));
                 }
-                myPolygonBodies.append(new PolygonBody(triangle_vertices, 3,
-                                                                   b2Vec2(0, 0), world));
-                //polygonItem.append(scene->addPolygon(triangle_test_poly, pen, QBrush(Qt::gray)));
-
+                myPolygonBodies.append(new PolygonBody(triangle_vertices, 3, b2Vec2(0, 0), world));
             }
-        */
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        busy = false;
+        }
 
         foreach (QGraphicsPolygonItem *tmp_poly, polygonItem) {
             scene->removeItem(tmp_poly);
@@ -344,24 +315,17 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         }
 
 
-
         // Remove and redraw number of polygons
         scene->removeItem(textItem);
         textItem = scene->addText(QString("Number of polygons: ") + QString::number(new_solution.size()));
         textItem->setPos(5, 5);
-
-
-        //qDebug().noquote() << new_solution.size() << "polygons";  // Print number of polygons to console
-
-        // Uncomment if you want to see a position of last mouse press
-        //scene->addEllipse(mouse_x - 5, mouse_y - 5, 10, 10, QPen(Qt::black), QBrush(Qt::gray));
 
     }
 
     if(mouseRightKeyPressed  && !busy) {
         scene->addItem(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
 
-        qDebug().noquote() << "new circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
+        //qDebug().noquote() << "new circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
 
     }
 
@@ -410,8 +374,124 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
             }
         }
 
+        std::vector<p2t::Point*> polylines[new_solution.size()];
+        std::vector<p2t::Triangle*> triangles[new_solution.size()];
+
+        for(unsigned int sz = 0; sz < new_solution.size(); sz++)
+        {
+            std::set<p2t::Point*, decltype(compPoint)> sorted_lines(compPoint);
+
+            for(unsigned int j = 0; j < new_solution[sz].size(); j++)
+            {
+                auto result_dup = sorted_lines.insert(new p2t::Point((int)new_solution[sz][j].X, (int)new_solution[sz][j].Y));
+
+                if(!result_dup.second)
+                {
+                    qDebug().noquote() << "/////// DUPLICATE"
+                                       << new_solution[sz][j].X << (int)new_solution[sz][j].Y
+                                       << "THROWN --------------" << "\n";
+
+                } else
+                    polylines[sz].push_back(new p2t::Point((int)new_solution[sz][j].X, (int)new_solution[sz][j].Y));
+            }
+
+            p2t::CDT cdt(polylines[sz]);
+
+            //qDebug().noquote() << "D before trangulate";
+
+            cdt.Triangulate();
+            triangles[sz] = cdt.GetTriangles();
+
+            b2Vec2 triangle_vertices[3];
+
+            for (p2t::Triangle *tri : triangles[sz])
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                 const p2t::Point &p = *tri->GetPoint(i);
+                 triangle_vertices[i].x = toB2(p.x);
+                 triangle_vertices[i].y = toB2(p.y);
+
+                 //qDebug().noquote() << "triangle" << i << p.x << p.y;
+                 //triangle_test_poly.append(QPoint(triangle_vertices[i].x, triangle_vertices[i].y));
+                }
+                myPolygonBodies.append(new PolygonBody(triangle_vertices, 3, b2Vec2(0, 0), world));
+            }
+
+        }
+
+        /*
+        // 222222222222222222222222222222222222222222222222222222222222222222222222
+
+
+        std::vector<p2t::Point*> polylines[new_solution.size()];
+        std::vector<p2t::Triangle*> triangles[new_solution.size()];
+
+        for(unsigned int i = 0; i < new_solution.size(); i++)
+        {
+            std::set<p2t::Point*, decltype(compPoint)> sorted_lines(compPoint);
+
+
+            //std::unordered_set<p2t::Point*,decltype(hash),decltype(equal)> sorted_lines(10, hash, equal);
+
+            for(unsigned int j = 0; j < new_solution[i].size(); j++)
+            {
+                auto result_dup = sorted_lines.insert(new p2t::Point((int)new_solution[i][j].X,
+                                                                                  (int)new_solution[i][j].Y));
+                if(!result_dup.second) {
+                    qDebug().noquote() << "/////// DUPLICATE --------------";
+
+                    qDebug().noquote() << "/////// DD" << new_solution[i][j].X << (int)new_solution[i][j].Y;
+
+                } else
+                    polylines[i].push_back(new p2t::Point((int)new_solution[i][j].X, (int)new_solution[i][j].Y));
+            }
+
+        }
+
+        for(unsigned int sz = 0; sz < new_solution.size(); sz++)
+        {
+
+            p2t::CDT cdt(polylines[sz]);
+
+            qDebug().noquote() << "at this";
+            for(unsigned int cz = 0; cz < polylines[sz].size(); cz++)
+            {
+                qDebug().noquote() << polylines[sz].at(cz)->x << polylines[sz].at(cz)->y;
+            }
+
+            qDebug().noquote() << "D before trangulate";
+
+            cdt.Triangulate();
+            triangles[sz] = cdt.GetTriangles();
+
+            b2Vec2 triangle_vertices[3];
+
+            for (p2t::Triangle *tri : triangles[sz])
+            {
+             for (int i = 0; i < 3; ++i)
+             {
+                 const p2t::Point &p = *tri->GetPoint(i);
+                 triangle_vertices[i].x = toB2(p.x);
+                 triangle_vertices[i].y = toB2(p.y);
+
+                 //qDebug().noquote() << "triangle" << i << p.x << p.y;
+                 //triangle_test_poly.append(QPoint(triangle_vertices[i].x, triangle_vertices[i].y));
+             }
+             myPolygonBodies.append(new PolygonBody(triangle_vertices, 3,
+                                                                b2Vec2(0, 0), world));
+             //polygonItem.append(scene->addPolygon(triangle_test_poly, pen, QBrush(Qt::gray)));
+
+            }
+        }
+
 
         // 222222222222222222222222222222222222222222222222222222222222222222222222
+        */
+
+
+        /*
+        // oldoldoldoldoldold_backup
 
         std::vector<p2t::Point*> polylines[new_solution.size()];
         std::vector<p2t::Triangle*> triangles[new_solution.size()];
@@ -443,15 +523,15 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
                      //qDebug().noquote() << "triangle" << i << p.x << p.y;
                      //triangle_test_poly.append(QPoint(triangle_vertices[i].x, triangle_vertices[i].y));
                  }
-                 myPolygonBodies.append(new PolygonBody(triangle_vertices, 3,
-                                                                    b2Vec2(0, 0), world));
+                 myPolygonBodies.append(new PolygonBody(triangle_vertices, 3, b2Vec2(0, 0), world));
                  //polygonItem.append(scene->addPolygon(triangle_test_poly, pen, QBrush(Qt::gray)));
 
              }
         }
 
 
-        // 222222222222222222222222222222222222222222222222222222222222222222222222
+        // oldoldoldoldoldold_backup
+        */
 
 
         foreach (QGraphicsPolygonItem *tmp_poly, polygonItem) {
@@ -481,7 +561,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     if(mouseRightKeyPressed && !busy) {
         scene->addItem(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
 
-        qDebug().noquote() << "ew circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
+        //qDebug().noquote() << "new circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
     }
 
     QMainWindow::mouseMoveEvent(event);
