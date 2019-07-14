@@ -86,10 +86,20 @@ private:
     Ui::MainWindow *ui;
     Paths *mainPath;
 
+    QTimer *frameTimer;
+
+    b2World *world;
+
+    std::vector<PolygonBody*> myPolygonBodies;
+
+    QVector<QGraphicsPolygonItem*> polygonItemVector;
+
+    QVector<QGraphicsPolygonItem*> triangleItemVector;
+
     QGraphicsTextItem *numberOfPolygonsTextItem;
+    QGraphicsTextItem *numberOfTrianglesTextItem;
     QGraphicsTextItem *numberOfThrownDuplicateVerticesTextItem;
 
-    QVector<QGraphicsPolygonItem*> polygonItem;
 
     QPen pen;
     QBrush brush;
@@ -99,13 +109,12 @@ private:
 
     bool reseted = true;
     bool busy = false;
+    bool draw_triangles = false;
 
     int brush_width = 16;
+    int numberOfTriangles = 0;
     int numberOfThrownDuplicateVertices = 0;
 
-    QTimer *frameTimer;
-
-    b2World *world;
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -115,7 +124,6 @@ protected:
 private slots:
     void on_horizontalSlider_valueChanged(int value);
     void on_resetButton_clicked();
-    void on_deleteCirclesButton_clicked();
 
     void on_radioButtonMagenta_toggled(bool checked);
     void on_radioButtonGreen_toggled(bool checked);
@@ -125,6 +133,7 @@ private slots:
     void on_radioButtonCherry_toggled(bool checked);
     void on_radioButtonWhite_toggled(bool checked);
     void on_radioButtonGrey_toggled(bool checked);
+    void on_radioButton_toggled(bool checked);
 };
 
 

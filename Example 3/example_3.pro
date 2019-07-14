@@ -27,7 +27,8 @@ SOURCES += main.cpp\
         mainwindow.cpp \
 	ghost.cpp \
 	polygonbody.cpp \
-	wall.cpp
+	wall.cpp \
+    horizontalsliderstylesheet.cpp
 
 HEADERS  += mainwindow.h \
 	ghost.h \
