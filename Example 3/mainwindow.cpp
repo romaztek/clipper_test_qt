@@ -67,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent) :
     groundRect->setPen(groundRectPen);
     groundRect->setBrush(QBrush(Qt::yellow));
 
+    scene->addItem(groundRect);
+
     const float bottomGroundX_B2 = toB2(this->width()/2);
     const float bottomGroundY_B2 = toB2(this->height() - 80 + 20/2);
     const float bottomGroundWidth_B2 = toB2(640);
@@ -76,8 +78,6 @@ MainWindow::MainWindow(QWidget *parent) :
                                   bottomGroundWidth_B2, bottomGroundHeight_B2, 10, world);
 
     b2Vec2 myPolygonBodyVertices[mainPath->at(0).size()];
-
-    scene->addItem(groundRect);
 
     QPolygon mainPath_poly;
 
@@ -100,15 +100,41 @@ MainWindow::MainWindow(QWidget *parent) :
 
     polygonItemVector.append(scene->addPolygon(mainPath_poly, pen, brush));
 
+    // Draw number of polygons
     numberOfPolygonsTextItem = scene->addText(QString("Number of polygons: ") + QString::number(1));
     numberOfPolygonsTextItem->setPos(5, 5);
 
-    numberOfThrownDuplicateVerticesTextItem = scene->addText(QString("Number of thrown duplicate vertices in last processing: ")
-                                                             + QString::number(numberOfThrownDuplicateVertices));
-    numberOfThrownDuplicateVerticesTextItem->setPos(5, 25);
+    // Draw number of triangles formed from polygons (0 at start)
+    numberOfTrianglesTextItem = scene->addText(QString("Number of triangles formed from polygons: ") + QString::number(numberOfTriangles));
+    numberOfTrianglesTextItem->setPos(5,25);
 
-    numberOfTrianglesTextItem = scene->addText(QString("Number of triangles: ") + QString::number(numberOfTriangles));
-    numberOfTrianglesTextItem->setPos(5, 45);
+    // Draw number of thrown duplicate points in last processing (0 at start)
+    numberOfThrownDuplicatePointsTextItem = scene->addText(QString("Number of thrown duplicate points in last processing: ")
+                                                             + QString::number(numberOfThrownDuplicatePoints));
+    numberOfThrownDuplicatePointsTextItem->setPos(5, 45);
+
+
+    lastProcessDurationTextItem = scene->addText(
+                QString("Process duration: \n") + QString("Last: \n") +
+                QString("N/A") + QString(" ms\n") +
+                QString("N/A") + QString(" µs\n") +
+                QString("N/A") + QString(" ns\n"));
+
+    minimumProcessDurationTextItem = scene->addText(
+                QString("\n") + QString("Minimum: \n") +
+                QString("N/A") + QString(" ms\n") +
+                QString("N/A") + QString(" µs\n") +
+                QString("N/A") + QString(" ns\n"));
+
+    maximumProcessDurationTextItem = scene->addText(
+                QString("\n") + QString("Maximum: \n") +
+                QString("N/A") + QString(" ms\n") +
+                QString("N/A") + QString(" µs\n") +
+                QString("N/A") + QString(" ns\n"));
+
+    lastProcessDurationTextItem->setPos(5, 65);
+    minimumProcessDurationTextItem->setPos(95, 65);
+    maximumProcessDurationTextItem->setPos(185, 65);
 
     frameTimer = new QTimer(this);
     connect(frameTimer, SIGNAL(timeout()), scene, SLOT(advance()));
@@ -143,17 +169,42 @@ void MainWindow::setCirclePath(int _x, int _y, int _r, Paths *path)        // Cr
 
 }
 
+void MainWindow::deleteCircles()
+{
+    /*if(coloredCirclesVector.empty())
+        return;
+    for(int i = 0; i < coloredCirclesVector.size(); i++) {
+        scene->removeItem(coloredCirclesVector.at(i));
+        coloredCirclesVector.at(i)->deleteLater();
+    }*/
+    //coloredCirclesVector.clear();
+}
+
 void MainWindow::resetPolygon()
 {
-    mainPath->clear();
+    foreach (PolygonBody *tmp_poly, myPolygonBodies)
+    {
+        tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
+    }
+    myPolygonBodies.clear();
+
     mainPath = new Paths(1);
     mainPath->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
-                   IntPoint(600, 420) << IntPoint(40, 420);
+                   IntPoint(600, 420) << IntPoint(40, 420);\
+
+    b2Vec2 myPolygonBodyVertices[mainPath->at(0).size()];
 
     QPolygon mainPath_poly;
-    for(unsigned int i = 0; i < mainPath->at(0).size(); i++) {
+
+    for(unsigned int i = 0; i < mainPath->at(0).size(); i++)
+    {
         mainPath_poly.append(QPoint((int)mainPath->at(0).at(i).X, (int)mainPath->at(0).at(i).Y));
+
+        myPolygonBodyVertices[i].x = toB2((int)mainPath->at(0).at(i).X);
+        myPolygonBodyVertices[i].y = toB2((int)mainPath->at(0).at(i).Y);
     }
+
+    myPolygonBodies.push_back(new PolygonBody(myPolygonBodyVertices, 4, b2Vec2(0, 0), world));
 
     foreach (QGraphicsPolygonItem *tmp_poly, polygonItemVector) {
         scene->removeItem(tmp_poly);
@@ -165,21 +216,49 @@ void MainWindow::resetPolygon()
         polygonItemVector.append(scene->addPolygon(mainPath_poly, pen, brush));
     }
 
+    // Remove and redraw number of polygons
     scene->removeItem(numberOfPolygonsTextItem);
     numberOfPolygonsTextItem = scene->addText(QString("Number of polygons: ") + QString::number(mainPath->size()));
     numberOfPolygonsTextItem->setPos(5, 5);
 
-
-    scene->removeItem(numberOfThrownDuplicateVerticesTextItem);
-    numberOfThrownDuplicateVertices = 0;
-    numberOfThrownDuplicateVerticesTextItem = scene->addText(QString("Number of thrown duplicate vertices in last processing: ")
-                                                             + QString::number(numberOfThrownDuplicateVertices));
-    numberOfThrownDuplicateVerticesTextItem->setPos(5, 25);
-
+    // Remove and redraw number of triangles formed from polygons
     scene->removeItem(numberOfTrianglesTextItem);
     numberOfTriangles = 0;
-    numberOfTrianglesTextItem = scene->addText(QString("Number of triangles: ") + QString::number(numberOfTriangles));
-    numberOfTrianglesTextItem->setPos(5, 45);
+    numberOfTrianglesTextItem = scene->addText(QString("Number of triangles formed from polygons: ") + QString::number(numberOfTriangles));
+    numberOfTrianglesTextItem->setPos(5, 25);
+
+    // Remove and redraw number of thrown duplicate points in last processingscene->removeItem(numberOfThrownDuplicatePointsTextItem);
+    scene->removeItem(numberOfThrownDuplicatePointsTextItem);
+    numberOfThrownDuplicatePoints = 0;
+    numberOfThrownDuplicatePointsTextItem = scene->addText(QString("Number of thrown duplicate points in last processing: ")
+                                                             + QString::number(numberOfThrownDuplicatePoints));
+    numberOfThrownDuplicatePointsTextItem->setPos(5, 45);
+
+    scene->removeItem(lastProcessDurationTextItem);
+    scene->removeItem(minimumProcessDurationTextItem);
+    scene->removeItem(maximumProcessDurationTextItem);
+
+    lastProcessDurationTextItem = scene->addText(
+                QString("Process duration: \n") + QString("Last: \n") +
+                QString("N/A") + QString(" ms\n") +
+                QString("N/A") + QString(" µs\n") +
+                QString("N/A") + QString(" ns\n"));
+
+    minimumProcessDurationTextItem = scene->addText(
+                QString("\n") + QString("Minimum: \n") +
+                QString("N/A") + QString(" ms\n") +
+                QString("N/A") + QString(" µs\n") +
+                QString("N/A") + QString(" ns\n"));
+
+    maximumProcessDurationTextItem = scene->addText(
+                QString("\n") + QString("Maximum: \n") +
+                QString("N/A") + QString(" ms\n") +
+                QString("N/A") + QString(" µs\n") +
+                QString("N/A") + QString(" ns\n"));
+
+    lastProcessDurationTextItem->setPos(5, 65);
+    minimumProcessDurationTextItem->setPos(95, 65);
+    maximumProcessDurationTextItem->setPos(185, 65);
 
     qDebug().noquote() << "Terrain reseted:" << reseted;
 
@@ -222,6 +301,8 @@ void MainWindow::repaintPolygon()
 
 void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
 {
+    auto start(std::chrono::high_resolution_clock::now());
+
     Paths circlePath(1);    // Paths(1) for circle's path
     Paths proceededPath;    // Paths for proceeded polygon after clipping
 
@@ -234,11 +315,12 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
     c.AddPaths(circlePath, ptClip, true);
     c.Execute(ctDifference, proceededPath, pftEvenOdd , pftEvenOdd);
 
-    //*mainPath = proceededPath;       // After clipping: main polygon = proceededPath (current polygon)
 
-    foreach (PolygonBody *tmp_poly, myPolygonBodies) {
-        tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
-    }
+    bool path_changed_bool = (*mainPath != proceededPath);
+    qDebug().noquote() << "Path changed:" << path_changed_bool;
+    if(!path_changed_bool)
+        return;
+
 
     size_t proceededPathSize = proceededPath.size();
 
@@ -256,12 +338,16 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
         }
     }
 
+    foreach (PolygonBody *tmp_poly, myPolygonBodies)
+    {
+        tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
+    }
     myPolygonBodies.clear();
 
     std::vector<p2t::Point*>    polylines[proceededPathSize];
     std::vector<p2t::Triangle*> triangles[proceededPathSize];
 
-    QVector<QPolygon> t_poly_vec;
+    QVector<QPolygon> triangles_poly_vec;
 
     numberOfTriangles = 0;
 
@@ -270,14 +356,15 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
         std::set<p2t::Point*, decltype(compPoint)> sorted_lines(compPoint);
         for(unsigned int cz = 0; cz < proceededPath[sz].size(); cz++)
         {
-            auto result_dup = sorted_lines.insert(new p2t::Point((int)proceededPath[sz][cz].X, (int)proceededPath[sz][cz].Y));
+            auto result_dup = sorted_lines.insert(new p2t::Point((int)proceededPath[sz][cz].X,
+                                                                 (int)proceededPath[sz][cz].Y));
 
             if(!result_dup.second)
             {
-                numberOfThrownDuplicateVertices++;
-                qDebug().noquote() << "//\\\\ DUPLICATE"
-                                   << proceededPath[sz][cz].X << (int)proceededPath[sz][cz].Y
-                                   << "THROWN //\\\\";
+                numberOfThrownDuplicatePoints++;
+                qDebug().noquote().nospace() << "//\\\\ DUPLICATE POINT("
+                                   << proceededPath[sz][cz].X << ", " << (int)proceededPath[sz][cz].Y
+                                   << ") THROWN //\\\\";
             }
             else
             {
@@ -296,14 +383,12 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
         {
             QPolygon t_poly;
 
-            for (int i = 0; i < 3; ++i)
+            for (int dz = 0; dz < 3; ++dz)
             {
-             const p2t::Point &p = *tri->GetPoint(i);
-             triangle_vertices[i].x = toB2(p.x);
-             triangle_vertices[i].y = toB2(p.y);
+             const p2t::Point &p = *tri->GetPoint(dz);
+             triangle_vertices[dz].x = toB2(p.x);
+             triangle_vertices[dz].y = toB2(p.y);
 
-             //qDebug().noquote() << "triangle" << i << p.x << p.y;
-             //triangle_test_poly.append(QPoint(triangle_vertices[i].x, triangle_vertices[i].y));
              if(draw_triangles)
                 t_poly.append(QPoint(p.x, p.y));
 
@@ -311,7 +396,7 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
             numberOfTriangles++;
 
             if(draw_triangles)
-                t_poly_vec.append(t_poly);
+                triangles_poly_vec.append(t_poly);
 
             myPolygonBodies.push_back(new PolygonBody(triangle_vertices, 3, b2Vec2(0, 0), world));
         }
@@ -332,7 +417,6 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
         polygonItemVector.append(scene->addPolygon(solution_poly[i], pen, brush));
     }
 
-
     foreach (QGraphicsPolygonItem *tmp_poly, triangleItemVector) {
         scene->removeItem(tmp_poly);
     }
@@ -340,26 +424,73 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
     triangleItemVector.clear();
 
     if(draw_triangles) {
-        for (QPolygon it_t_poly : t_poly_vec)
+        for (QPolygon it_t_poly : triangles_poly_vec)
         {
             triangleItemVector.append(scene->addPolygon(it_t_poly, QPen(Qt::black), QBrush(Qt::NoBrush)));
         }
     }
+
+    auto end(std::chrono::high_resolution_clock::now());
+    auto duration(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start));
+
+    /*
+    qDebug().noquote() << "Duration: " << duration.count() << " ns"
+                                       << duration.count()/1000 << " µs"
+                                       << duration.count()/1000/1000 << " ms";
+    */
+
+    resultProcessTime = duration.count();
+
+    if(resultProcessTime < minimumProcessTime)
+        minimumProcessTime = resultProcessTime;
+
+    if(resultProcessTime > maximumProcessTime)
+        maximumProcessTime = resultProcessTime;
 
     // Remove and redraw number of polygons
     scene->removeItem(numberOfPolygonsTextItem);
     numberOfPolygonsTextItem = scene->addText(QString("Number of polygons: ") + QString::number(proceededPathSize));
     numberOfPolygonsTextItem->setPos(5, 5);
 
-    // Remove and redraw number of thrown duplicate vertices in last processing
-    scene->removeItem(numberOfThrownDuplicateVerticesTextItem);
-    numberOfThrownDuplicateVerticesTextItem = scene->addText(QString("Number of thrown duplicate vertices in last processing: ")
-                                                             + QString::number(numberOfThrownDuplicateVertices));
-    numberOfThrownDuplicateVerticesTextItem->setPos(5, 25);
-
+    // Remove and redraw number of triangles formed from polygons
     scene->removeItem(numberOfTrianglesTextItem);
-    numberOfTrianglesTextItem = scene->addText(QString("Number of triangles: ") + QString::number(numberOfTriangles));
-    numberOfTrianglesTextItem->setPos(5, 45);
+    numberOfTrianglesTextItem = scene->addText(QString("Number of triangles formed from polygons: ") + QString::number(numberOfTriangles));
+    numberOfTrianglesTextItem->setPos(5, 25);
+
+    // Remove and redraw number of thrown duplicate points in last processing
+    scene->removeItem(numberOfThrownDuplicatePointsTextItem);
+    numberOfThrownDuplicatePointsTextItem = scene->addText(QString("Number of thrown duplicate points in last processing: ")
+                                                             + QString::number(numberOfThrownDuplicatePoints));
+    numberOfThrownDuplicatePointsTextItem->setPos(5, 45);
+
+    if(lastProcessDurationTextItem != nullptr)
+        scene->removeItem(lastProcessDurationTextItem);
+    if(minimumProcessDurationTextItem != nullptr)
+        scene->removeItem(minimumProcessDurationTextItem);
+    if(maximumProcessDurationTextItem != nullptr)
+        scene->removeItem(maximumProcessDurationTextItem);
+
+    lastProcessDurationTextItem = scene->addText(
+                QString("Process duration: \n") + QString("Last: \n") +
+                QString::number(duration.count()/1000/1000) + QString(" ms\n") +
+                QString::number(duration.count()/1000) + QString(" µs\n") +
+                QString::number(duration.count()) + QString(" ns\n"));
+
+    minimumProcessDurationTextItem = scene->addText(
+                QString("\n") + QString("Minimum: \n") +
+                QString::number(minimumProcessTime/1000/1000) + QString(" ms\n") +
+                QString::number(minimumProcessTime/1000) + QString(" µs\n") +
+                QString::number(minimumProcessTime) + QString(" ns\n"));
+
+    maximumProcessDurationTextItem = scene->addText(
+                QString("\n") + QString("Maximum: \n") +
+                QString::number(maximumProcessTime/1000/1000) + QString(" ms\n") +
+                QString::number(maximumProcessTime/1000) + QString(" µs\n") +
+                QString::number(maximumProcessTime) + QString(" ns\n"));
+
+    lastProcessDurationTextItem->setPos(5, 65);
+    minimumProcessDurationTextItem->setPos(95, 65);
+    maximumProcessDurationTextItem->setPos(185, 65);
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -372,7 +503,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
         if(!busy)
         {
-            numberOfThrownDuplicateVertices = 0;
+            numberOfThrownDuplicatePoints = 0;
             numberOfTriangles = 0;
             processTheTerrain(event->pos().x(), event->pos().y());
         }
@@ -384,7 +515,9 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     }
 
     if(mouseRightKeyPressed  && !busy) {
-        scene->addItem(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
+
+        coloredCirclesVector.append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
+        scene->addItem(coloredCirclesVector.last());
         //qDebug().noquote() << "new circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
     }
 
@@ -400,8 +533,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     }
 
     if(mouseRightKeyPressed && !busy) {
-        scene->addItem(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
-
+        coloredCirclesVector.append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
+        scene->addItem(coloredCirclesVector.last());
         //qDebug().noquote() << "new circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
     }
 
@@ -433,6 +566,7 @@ void MainWindow::on_resetButton_clicked()
 {
     reseted = true;
     resetPolygon();
+    deleteCircles();
 }
 
 void MainWindow::on_radioButtonMagenta_toggled(bool checked)
@@ -602,12 +736,13 @@ void Circle::advance(int phase)
 {
     if(phase)
     {
-        setPos(fromB2(body->GetPosition().x), fromB2(body->GetPosition().y));
-
         if(this->y() > 480)
         {
+            this->deleteLater();
             //qDebug().noquote() << "circle deleted";
-            delete this;
+        } else
+        {
+            setPos(fromB2(body->GetPosition().x), fromB2(body->GetPosition().y));
         }
     }
 }

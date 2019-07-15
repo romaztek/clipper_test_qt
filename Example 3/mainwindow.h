@@ -1,12 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
+#include <stdio.h>
 #include <math.h>
 #include <set>
 #include <unordered_set>
 #include <iterator>
+#include <chrono>
 
+#include <QObject>
 #include <QDebug>
 #include <QWidget>
 #include <QMainWindow>
@@ -35,12 +37,14 @@ namespace Ui {
 class MainWindow;
 }
 
-class Circle : public QGraphicsEllipseItem
+class Circle : public QObject, public QGraphicsEllipseItem
 {
+    Q_OBJECT
 public:
     Circle(qreal radius, QPointF initPos, b2World *world);
     ~Circle();
     int needDestroy = 0;
+    b2Body *getBody() { return body; }
 private:
     b2Body *body;
 public:
@@ -77,6 +81,7 @@ public:
 
     void setCirclePath(int _x, int _y, int _r, Paths *path);
 
+    void deleteCircles();
     void resetPolygon();
     void repaintPolygon();
 
@@ -92,14 +97,23 @@ private:
 
     std::vector<PolygonBody*> myPolygonBodies;
 
+    QVector<Circle*> coloredCirclesVector;
+
     QVector<QGraphicsPolygonItem*> polygonItemVector;
 
     QVector<QGraphicsPolygonItem*> triangleItemVector;
 
     QGraphicsTextItem *numberOfPolygonsTextItem;
     QGraphicsTextItem *numberOfTrianglesTextItem;
-    QGraphicsTextItem *numberOfThrownDuplicateVerticesTextItem;
+    QGraphicsTextItem *numberOfThrownDuplicatePointsTextItem;
 
+    QGraphicsTextItem *lastProcessDurationTextItem = nullptr;
+    QGraphicsTextItem *minimumProcessDurationTextItem = nullptr;
+    QGraphicsTextItem *maximumProcessDurationTextItem = nullptr;
+
+    long resultProcessTime = 0;
+    long minimumProcessTime = LONG_MAX;
+    long maximumProcessTime = LONG_MIN;
 
     QPen pen;
     QBrush brush;
@@ -113,7 +127,7 @@ private:
 
     int brush_width = 16;
     int numberOfTriangles = 0;
-    int numberOfThrownDuplicateVertices = 0;
+    int numberOfThrownDuplicatePoints = 0;
 
 
 protected:
