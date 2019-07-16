@@ -677,7 +677,7 @@ void MainWindow::on_radioButtonGrey_toggled(bool checked)
     repaintPolygon();
 }
 
-void MainWindow::on_radioButton_toggled(bool checked)
+void MainWindow::on_radioButtonYes_toggled(bool checked)
 {
     if(checked)
         draw_triangles = true;

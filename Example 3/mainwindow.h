@@ -43,10 +43,11 @@ class Circle : public QObject, public QGraphicsEllipseItem
 public:
     Circle(qreal radius, QPointF initPos, b2World *world);
     ~Circle();
-    int needDestroy = 0;
     b2Body *getBody() { return body; }
+
 private:
     b2Body *body;
+
 public:
     virtual void advance(int phase);
 
@@ -97,9 +98,12 @@ private:
     Ui::MainWindow *ui;
     Paths *mainPath;
 
-    QTimer *frameTimer;
-
     b2World *world;
+
+    QPen pen;
+    QBrush brush;
+
+    QTimer *frameTimer;
 
     std::vector<PolygonBody*> myPolygonBodies;
 
@@ -121,15 +125,11 @@ private:
     long minimumProcessTime = LONG_MAX;
     long maximumProcessTime = LONG_MIN;
 
-    QPen pen;
-    QBrush brush;
-
-    bool mouseLeftKeyPressed = false;
-    bool mouseRightKeyPressed = false;
-
     bool reseted = true;
     bool busy = false;
     bool draw_triangles = false;
+    bool mouseLeftKeyPressed = false;
+    bool mouseRightKeyPressed = false;
 
     int brush_width = 16;
     int numberOfTriangles = 0;
@@ -143,6 +143,7 @@ protected:
 
 private slots:
     void on_horizontalSlider_valueChanged(int value);
+
     void on_resetButton_clicked();
 
     void on_radioButtonMagenta_toggled(bool checked);
@@ -153,7 +154,8 @@ private slots:
     void on_radioButtonCherry_toggled(bool checked);
     void on_radioButtonWhite_toggled(bool checked);
     void on_radioButtonGrey_toggled(bool checked);
-    void on_radioButton_toggled(bool checked);
+
+    void on_radioButtonYes_toggled(bool checked);
 };
 
 

@@ -274,7 +274,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButton">
+          <widget class="QRadioButton" name="radioButtonYes">
            <property name="text">
             <string>Yes</string>
            </property>
@@ -343,7 +343,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="DrawTrianglesGroup"/>
   <buttongroup name="ColorGroup"/>
+  <buttongroup name="DrawTrianglesGroup"/>
  </buttongroups>
 </ui>
