@@ -1,4 +1,4 @@
-# Clipper example in Qt (Linux)
+# Clipper Example Qt  
 Qt version 5.7.1  
 Clipper library version: 6.1.3, dated 19 January 2014  
 Poly2Tri library version: dated 11 June 2019  
