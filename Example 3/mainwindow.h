@@ -59,6 +59,10 @@ class Scene : public QGraphicsScene
 public:
     Scene(qreal x, qreal y, qreal width, qreal height, b2World *world);
 
+    QVector<Circle*> *coloredCirclesVector;
+
+    bool locked = false;
+
 public slots:
     void advance();
 
@@ -82,10 +86,12 @@ public:
     void setCirclePath(int _x, int _y, int _r, Paths *path);
 
     void deleteCircles();
-    void resetPolygon();
+    void reset();
     void repaintPolygon();
 
     void processTheTerrain(int mouse_x, int mouse_y);
+
+    QVector<Circle*> *coloredCirclesVector;
 
 private:
     Ui::MainWindow *ui;
@@ -97,19 +103,19 @@ private:
 
     std::vector<PolygonBody*> myPolygonBodies;
 
-    QVector<Circle*> coloredCirclesVector;
-
     QVector<QGraphicsPolygonItem*> polygonItemVector;
 
     QVector<QGraphicsPolygonItem*> triangleItemVector;
 
+    QGraphicsTextItem *informationTextItem;
     QGraphicsTextItem *numberOfPolygonsTextItem;
     QGraphicsTextItem *numberOfTrianglesTextItem;
     QGraphicsTextItem *numberOfThrownDuplicatePointsTextItem;
+    QGraphicsTextItem *numberOfCircleBodiesTextItem;
 
-    QGraphicsTextItem *lastProcessDurationTextItem = nullptr;
-    QGraphicsTextItem *minimumProcessDurationTextItem = nullptr;
-    QGraphicsTextItem *maximumProcessDurationTextItem = nullptr;
+    QGraphicsTextItem *lastProcessDurationTextItem;
+    QGraphicsTextItem *minimumProcessDurationTextItem;
+    QGraphicsTextItem *maximumProcessDurationTextItem;
 
     long resultProcessTime = 0;
     long minimumProcessTime = LONG_MAX;
