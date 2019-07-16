@@ -90,7 +90,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Brush Width</string>
+          <string>Eraser Width</string>
          </property>
         </widget>
        </item>

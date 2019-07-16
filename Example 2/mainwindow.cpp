@@ -1,6 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+/*
+ *
+ * This example does not delete a duplicate points, it causes qpolygon issues
+ * (and poly2tri segfault, if you will using with it in this example)
+ * Example 3 delete duplicate points using std::set
+ *
+ */
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),

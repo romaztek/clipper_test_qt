@@ -3,14 +3,28 @@
 
 #include "horizontalsliderstylesheet.cpp"
 
-#define BRUSH_WIDTH 18
+#define ERASER_WIDTH 18
 #define CIRCLE_RADIUS 6
 
 extern const QString horizontalSliderStyleSheet;
 
-// Global variables here
+// Global variables start
 bool need_delete_circles = false;
 int num_of_circles = 0;
+
+QGraphicsTextItem *informationTextItem;
+QGraphicsTextItem *numberOfPolygonsTextItem;
+QGraphicsTextItem *numberOfTrianglesTextItem;
+QGraphicsTextItem *numberOfThrownDuplicatePointsTextItem;
+QGraphicsTextItem *numberOfCircleBodiesTextItem;
+
+QGraphicsTextItem *lastProcessDurationTextItem;
+QGraphicsTextItem *minimumProcessDurationTextItem;
+QGraphicsTextItem *maximumProcessDurationTextItem;
+
+QVector<Circle*> coloredCirclesVector;
+
+// Global variables end
 
 qreal fromB2(qreal value) {
     return value*SCALE;
@@ -44,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     ui->horizontalSlider->setStyleSheet(horizontalSliderStyleSheet);
-    ui->horizontalSlider->setValue(BRUSH_WIDTH);
+    ui->horizontalSlider->setValue(ERASER_WIDTH);
 
     b2Vec2 gravity(0.0f, 10.0f);
     world = new b2World(gravity);
@@ -91,10 +105,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     myPolygonBodies.push_back(new PolygonBody(myPolygonBodyVertices, 4, b2Vec2(0, 0), world));
-
-    coloredCirclesVector = new QVector<Circle*>;
-
-    scene->coloredCirclesVector = coloredCirclesVector;
 
     pen.setCosmetic(true);
     pen.setColor(Qt::darkMagenta);
@@ -184,13 +194,13 @@ void MainWindow::setCirclePath(int _x, int _y, int _r, Paths *path)        // Cr
 
 void MainWindow::deleteCircles()
 {
-    /*if(coloredCirclesVector->empty())
+    /*if(coloredCirclesVector.empty())
         return;
-    for(int i = 0; i < coloredCirclesVector->size(); i++) {
-        scene->removeItem(coloredCirclesVector->at(i));
-        coloredCirclesVector->at(i)->deleteLater();
+    for(int i = 0; i < coloredCirclesVector.size(); i++) {
+        scene->removeItem(coloredCirclesVector.at(i));
+        coloredCirclesVector.at(i)->deleteLater();
     }*/
-    //coloredCirclesVector->clear();
+    //coloredCirclesVector.clear();
 }
 
 void MainWindow::reset()
@@ -335,7 +345,7 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
 
 
     bool path_changed_bool = (*mainPath != proceededPath);
-    qDebug().noquote() << "Path changed:" << path_changed_bool;
+    //qDebug().noquote() << "Path changed:" << path_changed_bool;
     if(!path_changed_bool)
         return;
 
@@ -534,14 +544,9 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
     if(mouseRightKeyPressed  && !busy) {
 
-        coloredCirclesVector->append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
-        scene->addItem(coloredCirclesVector->last());
+        coloredCirclesVector.append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
+        scene->addItem(coloredCirclesVector.last());
         num_of_circles++;
-
-        // Draw number of circle bodies
-        scene->removeItem(numberOfCircleBodiesTextItem);
-        numberOfCircleBodiesTextItem  = scene->addText(QString("Number of circle bodies: ") + QString::number(num_of_circles));
-        numberOfCircleBodiesTextItem->setPos(this->width() - 5 - numberOfCircleBodiesTextItem->boundingRect().width(), 45);
 
         //qDebug().noquote() << "new circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
     }
@@ -558,14 +563,9 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     }
 
     if(mouseRightKeyPressed && !busy) {
-        coloredCirclesVector->append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
-        scene->addItem(coloredCirclesVector->last());
+        coloredCirclesVector.append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
+        scene->addItem(coloredCirclesVector.last());
         num_of_circles++;
-
-        // Draw number of circle bodies
-        scene->removeItem(numberOfCircleBodiesTextItem);
-        numberOfCircleBodiesTextItem  = scene->addText(QString("Number of circle bodies: ") + QString::number(num_of_circles));
-        numberOfCircleBodiesTextItem->setPos(this->width() - 5 - numberOfCircleBodiesTextItem->boundingRect().width(), 45);
 
         //qDebug().noquote() << "new circle at" << toB2(event->pos().x()) << toB2(event->pos().y());
     }
@@ -698,10 +698,15 @@ void Scene::advance()
     if(num_of_circles == 0)
     {
         need_delete_circles = false;
-        coloredCirclesVector->clear();
+        coloredCirclesVector.clear();
     }
 
-    //qDebug().noquote() << coloredCirclesVector->size();
+    // Remove and redraw number of circle bodies
+    this->removeItem(numberOfCircleBodiesTextItem);
+    numberOfCircleBodiesTextItem  = this->addText(QString("Number of circle bodies: ") + QString::number(num_of_circles));
+    numberOfCircleBodiesTextItem->setPos(this->width() - 5 - numberOfCircleBodiesTextItem->boundingRect().width(), 45);
+
+    //qDebug().noquote() << coloredCirclesVector.size();
 
     QGraphicsScene::advance();
 }
@@ -787,8 +792,8 @@ void Circle::advance(int phase)
         {
             delete this;
             num_of_circles--;
-            //qDebug().noquote() << "circle deleted" << QString::number(qrand()%256);
-        } else
+        }
+        else
         {
             setPos(fromB2(body->GetPosition().x), fromB2(body->GetPosition().y));
         }

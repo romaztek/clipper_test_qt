@@ -60,8 +60,6 @@ class Scene : public QGraphicsScene
 public:
     Scene(qreal x, qreal y, qreal width, qreal height, b2World *world);
 
-    QVector<Circle*> *coloredCirclesVector;
-
     bool locked = false;
 
 public slots:
@@ -92,8 +90,6 @@ public:
 
     void processTheTerrain(int mouse_x, int mouse_y);
 
-    QVector<Circle*> *coloredCirclesVector;
-
 private:
     Ui::MainWindow *ui;
     Paths *mainPath;
@@ -110,16 +106,6 @@ private:
     QVector<QGraphicsPolygonItem*> polygonItemVector;
 
     QVector<QGraphicsPolygonItem*> triangleItemVector;
-
-    QGraphicsTextItem *informationTextItem;
-    QGraphicsTextItem *numberOfPolygonsTextItem;
-    QGraphicsTextItem *numberOfTrianglesTextItem;
-    QGraphicsTextItem *numberOfThrownDuplicatePointsTextItem;
-    QGraphicsTextItem *numberOfCircleBodiesTextItem;
-
-    QGraphicsTextItem *lastProcessDurationTextItem;
-    QGraphicsTextItem *minimumProcessDurationTextItem;
-    QGraphicsTextItem *maximumProcessDurationTextItem;
 
     long resultProcessTime = 0;
     long minimumProcessTime = LONG_MAX;

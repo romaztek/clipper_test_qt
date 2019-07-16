@@ -39,20 +39,33 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-unix:!macx: LIBS += -L$$PWD/../Clipper/ -lpolyclipping \
-		    -L$$PWD/../Box2D/ -lBox2D \
-		    -L$$PWD/../Poly2Tri/ -lpoly2tri
+INCLUDEPATH +=	$$PWD/../Clipper/include \
+		$$PWD/../Box2D/include \
+		$$PWD/../Poly2Tri/include/poly2tri
 
-INCLUDEPATH +=	$$PWD/../Clipper \
-		$$PWD/../ \
-		$$PWD/../Poly2Tri/poly2tri
+DEPENDPATH +=	$$PWD/../Clipper/include \
+		$$PWD/../Box2D/include \
+		$$PWD/../Poly2Tri/include/poly2tri
 
-DEPENDPATH +=	$$PWD/../Clipper \
-		$$PWD/../ \
-		$$PWD/../Poly2Tri/poly2tri
+unix:!macx: {
+    contains(QT_ARCH, i386) {
+	message("32-bit libs not built, you can build it manually")
+    } else {
+	LIBS +=	-L$$PWD/../Clipper/lib/linux_x86_64/ -lpolyclipping \
+		-L$$PWD/../Box2D/lib/linux_x86_64/ -lBox2D \
+		-L$$PWD/../Poly2Tri/lib/linux_x86_64/ -lpoly2tri
+    }
+}
 
-unix:!macx: PRE_TARGETDEPS +=	$$PWD/../Box2D/libBox2D.a \
-				$$PWD/../Poly2Tri/libpoly2tri.a
+win32 {
+    !contains(QMAKE_TARGET.arch, x86_64) {
+	message("32-bit libs not built, you can build it manually")
+    } else {
+	LIBS += -L$$PWD/../Clipper/lib/win_x86_64/ -lpolyclipping \
+		-L$$PWD/../Box2D/lib/win_x86_64/ -lBox2D \
+		-L$$PWD/../Poly2Tri/lib/win_x86_64/ -lpoly2tri
+    }
+}
 
 
 

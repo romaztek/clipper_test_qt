@@ -30,8 +30,25 @@ HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
-unix:!macx: LIBS += -L$$PWD/../Clipper/ -lpolyclipping
+INCLUDEPATH +=	$$PWD/../Clipper/include
 
-INCLUDEPATH += $$PWD/../Clipper
-DEPENDPATH += $$PWD/../Clipper
+DEPENDPATH +=	$$PWD/../Clipper/include
+
+unix:!macx: {
+    contains(QT_ARCH, i386) {
+	message("32-bit libs not built, you can build it manually")
+    } else {
+	LIBS +=	-L$$PWD/../Clipper/lib/linux_x86_64/ -lpolyclipping \
+		-L$$PWD/../Box2D/lib/linux_x86_64/ -lBox2D
+    }
+}
+
+win32 {
+    !contains(QMAKE_TARGET.arch, x86_64) {
+	message("32-bit libs not built, you can build it manually")
+    } else {
+	LIBS += -L$$PWD/../Clipper/lib/win_x86_64/ -lpolyclipping \
+		-L$$PWD/../Box2D/lib/win_x86_64/ -lBox2D
+    }
+}
 
