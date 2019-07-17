@@ -45,7 +45,7 @@ private:
 
     QGraphicsTextItem *polygonCountTextItem;
 
-    QVector<QGraphicsPolygonItem*> polygonItem;
+    QVector<QGraphicsPolygonItem*> polygonItemVector;
 
     QPen pen;
     QBrush brush;

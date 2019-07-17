@@ -1,6 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#define _USE_MATH_DEFINES
+
+#include <math.h>
+
 #include <QDebug>
 #include <QMainWindow>
 #include <QGraphicsView>
@@ -9,11 +13,8 @@
 #include <QGraphicsPolygonItem>
 #include <QMouseEvent>
 
-#include <math.h>
-
 #include <clipper.hpp>
 
-using namespace ClipperLib;
 
 namespace Ui {
 class MainWindow;
@@ -26,19 +27,25 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
     QGraphicsScene *scene = nullptr;
 
-    void Circle(int _x, int _y, int _r, Paths *path);
+    void processTheTerrain(int mouse_x, int mouse_y);
+
+    void setCircleToPath(int _x, int _y, int _r, ClipperLib::Path *path);
 
 private:
     Ui::MainWindow *ui;
-    Paths *mainPath;
-    QGraphicsTextItem *textItem;
+
+    ClipperLib::Paths *mainPathArray;
+
+    QGraphicsTextItem *polygonCountTextItem;
+
+    QVector<QGraphicsPolygonItem*> polygonItemVector;
 
     QPen pen;
     QBrush brush;
 
-    // QWidget interface
 protected:
     void mousePressEvent(QMouseEvent *event);
 };

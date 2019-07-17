@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         drawingPolygon.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
     }
-    polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
+    polygonItemVector.append(scene->addPolygon(drawingPolygon, pen, brush));
 
     polygonCountTextItem = scene->addText(QString("Number of polygons: ") + QString::number(mainPathArray->size()));
     polygonCountTextItem->setPos(5, 5);
@@ -53,14 +53,14 @@ MainWindow::~MainWindow()  // Destructor
     mainPathArray->clear();
     mainPathArray->shrink_to_fit();
 
-    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
+    foreach (QGraphicsPolygonItem *polyItem, polygonItemVector)
     {
-        scene->removeItem(tmp_poly);
-        delete tmp_poly;
+        scene->removeItem(polyItem);
+        delete polyItem;
     }
 
-    polygonItem.clear();
-    polygonItem.squeeze();
+    polygonItemVector.clear();
+    polygonItemVector.squeeze();
 
     scene->removeItem(polygonCountTextItem);
     delete polygonCountTextItem;
@@ -80,6 +80,7 @@ void MainWindow::setCircleToPath(int _x, int _y, int _r, ClipperLib::Path *path)
 
     dn = 0.1/r;
     n = 0;
+
     while (n < 2*M_PI)
     {
         x1 = round(x + r*cos(n));
@@ -99,13 +100,13 @@ void MainWindow::reset()           // Delete mainPathArray and repaint
     mainPathArray->shrink_to_fit();
 
     // Clear old polygons from scene and free memory
-    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
+    foreach (QGraphicsPolygonItem *polyItem, polygonItemVector)
     {
-        scene->removeItem(tmp_poly);
-        delete tmp_poly;                    // Dont know, need or not
+        scene->removeItem(polyItem);
+        delete polyItem;                    // Dont know, need or not
     }
-    polygonItem.clear();
-    polygonItem.squeeze();
+    polygonItemVector.clear();
+    polygonItemVector.squeeze();
 
     malloc_trim(0);     // Release free memory from the heap to OS
 
@@ -124,7 +125,7 @@ void MainWindow::reset()           // Delete mainPathArray and repaint
         }
 
         // Add QGraphicsPolygonItem with QPolygon to QVector<QGraphicsPolygonItem*>
-        polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
+        polygonItemVector.append(scene->addPolygon(drawingPolygon, pen, brush));
     }
 
     qDebug().noquote() << mainPathArray->size() << "polygons";  // Print number of polygons to console
@@ -142,13 +143,13 @@ void MainWindow::repaintPolygon()           // Just repaint mainPathArray withou
     }
 
     // Clear old polygons from scene and free memory
-    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
+    foreach (QGraphicsPolygonItem *polyItem, polygonItemVector)
     {
-        scene->removeItem(tmp_poly);
-        delete tmp_poly;                    // Dont know, need or not
+        scene->removeItem(polyItem);
+        delete polyItem;                    // Dont know, need or not
     }
-    polygonItem.clear();
-    polygonItem.squeeze();
+    polygonItemVector.clear();
+    polygonItemVector.squeeze();
 
     for(unsigned int i = 0; i < mainPathArray->size(); i++)
     {
@@ -159,7 +160,7 @@ void MainWindow::repaintPolygon()           // Just repaint mainPathArray withou
             drawingPolygon.append(QPoint((int)mainPathArray->at(i).at(j).X, (int)mainPathArray->at(i).at(j).Y));
         }
         // Add QGraphicsPolygonItem with QPolygon to QVector<QGraphicsPolygonItem*>
-        polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
+        polygonItemVector.append(scene->addPolygon(drawingPolygon, pen, brush));
     }
 
 }
@@ -201,15 +202,15 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
     qDebug().noquote() << "executedArray bytes after clear:" << executedArray.size() * sizeof(executedArray.at(0));
 
     // Clear old polygons from scene and free memory
-    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
+    foreach (QGraphicsPolygonItem *polyItem, polygonItemVector)
     {
-        scene->removeItem(tmp_poly);
-        delete tmp_poly;                    // Dont know, need or not
+        scene->removeItem(polyItem);
+        delete polyItem;                    // Dont know, need or not
     }
-    qDebug().noquote() << "polygonItem bytes before clear :" << polygonItem.size() * sizeof(polygonItem.at(0));
-    polygonItem.clear();
-    polygonItem.squeeze();
-    qDebug().noquote() << "polygonItem bytes after clear:" << polygonItem.size() * sizeof(polygonItem.at(0));
+    qDebug().noquote() << "polygonItemVector bytes before clear :" << polygonItemVector.size() * sizeof(polygonItemVector.at(0));
+    polygonItemVector.clear();
+    polygonItemVector.squeeze();
+    qDebug().noquote() << "polygonItemVector bytes after clear:" << polygonItemVector.size() * sizeof(polygonItemVector.at(0));
 
     for(unsigned int i = 0; i < mainPathArray->size(); i++)
     {
@@ -220,10 +221,10 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
             drawingPolygon.append(QPoint((int)mainPathArray->at(i).at(j).X, (int)mainPathArray->at(i).at(j).Y));
         }
         // Add QGraphicsPolygonItem with QPolygon to QVector<QGraphicsPolygonItem*>
-        polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
+        polygonItemVector.append(scene->addPolygon(drawingPolygon, pen, brush));
     }
 
-    qDebug().noquote() << "polygonItem bytes after append :" << polygonItem.size() * sizeof(polygonItem.at(0));
+    qDebug().noquote() << "polygonItemVector bytes after append :" << polygonItemVector.size() * sizeof(polygonItemVector.at(0));
     qDebug().noquote() << mainPathArray->size() << "polygons";  // Print number of polygons to console
 
     polygonCountTextItem->setPlainText(QString("Number of polygons: ") + QString::number(mainPathArray->size()));
