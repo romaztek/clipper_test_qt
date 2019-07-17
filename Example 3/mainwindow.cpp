@@ -71,8 +71,8 @@ MainWindow::MainWindow(QWidget *parent) :
     view->viewport()->setFocus(Qt::MouseFocusReason);
     view->viewport()->setAttribute(Qt::WA_TransparentForMouseEvents);
 
-    mainPath = new Paths(1);
-    mainPath->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
+    mainPathArray = new Paths(1);
+    mainPathArray->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
                    IntPoint(600, 420) << IntPoint(40, 420);
 
     QGraphicsRectItem *groundRect = new QGraphicsRectItem(0, this->height() - 80, this->width() - 1,  20 - 2);
@@ -92,16 +92,16 @@ MainWindow::MainWindow(QWidget *parent) :
     Wall *bottomGround = new Wall(bottomGroundX_B2, bottomGroundY_B2,
                                   bottomGroundWidth_B2, bottomGroundHeight_B2, 10, world);
 
-    b2Vec2 myPolygonBodyVertices[mainPath->at(0).size()];
+    b2Vec2 myPolygonBodyVertices[mainPathArray->at(0).size()];
 
     QPolygon mainPath_poly;
 
-    for(unsigned int i = 0; i < mainPath->at(0).size(); i++)
+    for(unsigned int i = 0; i < mainPathArray->at(0).size(); i++)
     {
-        mainPath_poly.append(QPoint((int)mainPath->at(0).at(i).X, (int)mainPath->at(0).at(i).Y));
+        mainPath_poly.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
 
-        myPolygonBodyVertices[i].x = toB2((int)mainPath->at(0).at(i).X);
-        myPolygonBodyVertices[i].y = toB2((int)mainPath->at(0).at(i).Y);
+        myPolygonBodyVertices[i].x = toB2((int)mainPathArray->at(0).at(i).X);
+        myPolygonBodyVertices[i].y = toB2((int)mainPathArray->at(0).at(i).Y);
     }
 
     myPolygonBodies.push_back(new PolygonBody(myPolygonBodyVertices, 4, b2Vec2(0, 0), world));
@@ -174,9 +174,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    //mainPathArray->clear();
-    //mainPathArray->shrink_to_fit();
-    //delete mainPathArray;
+    mainPathArray->clear();
+    mainPathArray->shrink_to_fit();
+    delete mainPathArray;
 
     foreach (QGraphicsPolygonItem *polyItem, polygonItemVector)
     {
@@ -253,20 +253,20 @@ void MainWindow::reset()
     }
     myPolygonBodies.clear();
 
-    mainPath = new Paths(1);
-    mainPath->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
+    mainPathArray = new Paths(1);
+    mainPathArray->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
                    IntPoint(600, 420) << IntPoint(40, 420);\
 
-    b2Vec2 myPolygonBodyVertices[mainPath->at(0).size()];
+    b2Vec2 myPolygonBodyVertices[mainPathArray->at(0).size()];
 
     QPolygon mainPath_poly;
 
-    for(unsigned int i = 0; i < mainPath->at(0).size(); i++)
+    for(unsigned int i = 0; i < mainPathArray->at(0).size(); i++)
     {
-        mainPath_poly.append(QPoint((int)mainPath->at(0).at(i).X, (int)mainPath->at(0).at(i).Y));
+        mainPath_poly.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
 
-        myPolygonBodyVertices[i].x = toB2((int)mainPath->at(0).at(i).X);
-        myPolygonBodyVertices[i].y = toB2((int)mainPath->at(0).at(i).Y);
+        myPolygonBodyVertices[i].x = toB2((int)mainPathArray->at(0).at(i).X);
+        myPolygonBodyVertices[i].y = toB2((int)mainPathArray->at(0).at(i).Y);
     }
 
     myPolygonBodies.push_back(new PolygonBody(myPolygonBodyVertices, 4, b2Vec2(0, 0), world));
@@ -277,7 +277,7 @@ void MainWindow::reset()
 
     polygonItemVector.clear();
 
-    for(unsigned int i = 0; i < mainPath->at(0).size(); i++) {
+    for(unsigned int i = 0; i < mainPathArray->at(0).size(); i++) {
         polygonItemVector.append(scene->addPolygon(mainPath_poly, pen, brush));
     }
 
@@ -286,7 +286,7 @@ void MainWindow::reset()
     numberOfCircleBodiesTextItem->setPos(this->width() - 5 - numberOfCircleBodiesTextItem->boundingRect().width(), 45);
 
     // Redraw number of polygons
-    numberOfPolygonsTextItem->setPlainText(QString("Number of polygons: ") + QString::number(mainPath->size()));
+    numberOfPolygonsTextItem->setPlainText(QString("Number of polygons: ") + QString::number(mainPathArray->size()));
 
     // Redraw number of triangles formed from polygons
     numberOfTriangles = 0;
@@ -328,14 +328,14 @@ void MainWindow::repaintPolygon()
     }
     else
     {
-        QPolygon solution_poly[mainPath->size()];
+        QPolygon solution_poly[mainPathArray->size()];
 
-        for(unsigned int i = 0; i < mainPath->size(); i++)
+        for(unsigned int i = 0; i < mainPathArray->size(); i++)
         {
-            for(unsigned int j = 0; j < mainPath->at(i).size(); j++)
+            for(unsigned int j = 0; j < mainPathArray->at(i).size(); j++)
             {
-                solution_poly[i].append(QPoint((int)mainPath->at(i).at(j).X,
-                                               (int)mainPath->at(i).at(j).Y));
+                solution_poly[i].append(QPoint((int)mainPathArray->at(i).at(j).X,
+                                               (int)mainPathArray->at(i).at(j).Y));
             }
         }
 
@@ -346,7 +346,7 @@ void MainWindow::repaintPolygon()
         polygonItemVector.clear();
 
         // Draw all polygons after clipping
-        for(unsigned int i = 0; i < mainPath->size(); i++)
+        for(unsigned int i = 0; i < mainPathArray->size(); i++)
         {
             polygonItemVector.append(scene->addPolygon(solution_poly[i], pen, brush));
         }
@@ -366,12 +366,12 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
 
     // Clipping
     Clipper c;
-    c.AddPaths(*mainPath, ptSubject, true);
+    c.AddPaths(*mainPathArray, ptSubject, true);
     c.AddPaths(circlePath, ptClip, true);
     c.Execute(ctDifference, proceededPath, pftEvenOdd , pftEvenOdd);
 
 
-    bool path_changed_bool = (*mainPath != proceededPath);
+    bool path_changed_bool = (*mainPathArray != proceededPath);
     //qDebug().noquote() << "Path changed:" << path_changed_bool;
     if(!path_changed_bool)
         return;
@@ -460,8 +460,8 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
         }
     }
 
-    mainPath->clear();
-    *mainPath = filteredPath;
+    mainPathArray->clear();
+    *mainPathArray = filteredPath;
 
     foreach (QGraphicsPolygonItem *polygonItem, polygonItemVector) {
         scene->removeItem(polygonItem);
