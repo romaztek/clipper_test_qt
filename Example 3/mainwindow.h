@@ -92,7 +92,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    Paths *mainPath;
+    Paths *mainPathArray;
 
     b2World *world;
 
