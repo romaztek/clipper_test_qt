@@ -159,6 +159,13 @@ MainWindow::MainWindow(QWidget *parent) :
     minimumProcessDurationTextItem->setPos(95, 65);
     maximumProcessDurationTextItem->setPos(185, 65);
 
+    int startColor = qrand() %(ui->ColorGroup->buttons().count());
+
+    for(int i=0; i < ui->ColorGroup->buttons().count(); i++) {
+        if(i == startColor)
+            ui->ColorGroup->buttons().at(i)->setChecked(true);
+    }
+
     frameTimer = new QTimer(this);
     connect(frameTimer, SIGNAL(timeout()), scene, SLOT(advance()));
     frameTimer->start(1000/60);
@@ -168,6 +175,8 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    mainPath->shrink_to_fit();
+    mainPath->clear();
 }
 
 void MainWindow::setCirclePath(int _x, int _y, int _r, Paths *path)        // Create a circle polygon Path
@@ -207,7 +216,8 @@ void MainWindow::reset()
 {
     foreach (PolygonBody *tmp_poly, myPolygonBodies)
     {
-        tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
+        delete tmp_poly;
+        //tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
     }
     myPolygonBodies.clear();
 
@@ -368,7 +378,8 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
 
     foreach (PolygonBody *tmp_poly, myPolygonBodies)
     {
-        tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
+        delete tmp_poly;
+        //tmp_poly->body->GetWorld()->DestroyBody(tmp_poly->body);
     }
     myPolygonBodies.clear();
 
@@ -400,6 +411,8 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
                 filteredPath.at(sz) << IntPoint((int)proceededPath[sz][cz].X, (int)proceededPath[sz][cz].Y);
             }
         }
+        sorted_lines.clear();
+
 
         p2t::CDT cdt(polylines[sz]);
         cdt.Triangulate();

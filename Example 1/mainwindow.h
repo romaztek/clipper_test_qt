@@ -6,6 +6,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
+#include <QGraphicsPolygonItem>
 #include <QMouseEvent>
 
 #include <math.h>

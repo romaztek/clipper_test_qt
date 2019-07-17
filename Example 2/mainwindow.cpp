@@ -1,9 +1,9 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 /*
  *
- * This example does not delete a duplicate points, it causes qpolygon issues
+ * This example does not delete a duplicate points, it  may cause qpolygon issues
  * (and poly2tri segfault, if you will using with it in this example)
  * Example 3 delete duplicate points using std::set
  *
@@ -14,31 +14,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     this->setFixedSize(this->width(), this->height());
+    this->move(710, 60);
+    this->setWindowFlags(Qt::WindowStaysOnTopHint);
 
     scene = new QGraphicsScene(0, 0, 640, 480);
 
-    QGraphicsView *view = this->findChild<QGraphicsView*>("graphicsView");
-    view->setScene(scene);
-
-    view->viewport()->setFocus(Qt::MouseFocusReason);
-    view->viewport()->setAttribute(Qt::WA_TransparentForMouseEvents);
-
-    scene->setFocus(Qt::MouseFocusReason);
-
-    view->setFocus(Qt::MouseFocusReason);
-    view->setFocusPolicy(Qt::StrongFocus);
-    view->setMouseTracking(true);
-    this->installEventFilter(view);
-
-    mainPath = new Paths(1);
-    mainPath->at(0) << IntPoint(100, 100) << IntPoint(500, 100) <<
-                   IntPoint(500, 400) << IntPoint(100, 400);
-
-    QPolygon mainPath_poly;
-    for(unsigned int i = 0; i < mainPath->at(0).size(); i++) {
-        mainPath_poly.append(QPoint((int)mainPath->at(0).at(i).X, (int)mainPath->at(0).at(i).Y));
-    }
+    ui->graphicsView->setScene(scene);
+    ui->graphicsView->setAttribute(Qt::WA_TransparentForMouseEvents);
 
     pen.setCosmetic(true);
     pen.setColor(Qt::darkMagenta);
@@ -47,20 +31,46 @@ MainWindow::MainWindow(QWidget *parent) :
     brush.setStyle(Qt::SolidPattern);
     brush.setColor(Qt::magenta);
 
-    polygonItem.append(scene->addPolygon(mainPath_poly, pen, brush));
+    // Create mainPathArray and fill it with Rectangle
+    mainPathArray = new ClipperLib::Paths(1);
+    mainPathArray->at(0) << ClipperLib::IntPoint(100, 100) << ClipperLib::IntPoint(500, 100) <<
+                   ClipperLib::IntPoint(500, 400) << ClipperLib::IntPoint(100, 400);
 
-    textItem = scene->addText(QString("Number of polygons: ") + QString::number(1));
-    textItem->setPos(5, 5);
+    QPolygon drawingPolygon;
+    for(unsigned int i = 0; i < mainPathArray->at(0).size(); i++)
+    {
+        drawingPolygon.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
+    }
+    polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
 
-    qDebug().noquote() << "reseted" << reseted;
+    polygonCountTextItem = scene->addText(QString("Number of polygons: ") + QString::number(mainPathArray->size()));
+    polygonCountTextItem->setPos(5, 5);
+
 }
 
-MainWindow::~MainWindow()
+MainWindow::~MainWindow()  // Destructor
 {
+    mainPathArray->clear();
+    mainPathArray->shrink_to_fit();
+
+    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
+    {
+        scene->removeItem(tmp_poly);
+        delete tmp_poly;
+    }
+
+    polygonItem.clear();
+    polygonItem.squeeze();
+
+    scene->removeItem(polygonCountTextItem);
+    delete polygonCountTextItem;
+
+    delete scene;
     delete ui;
+    delete mainPathArray;
 }
 
-void MainWindow::Circle(int _x, int _y, int _r, Paths *path)        // Create a circle polygon Path
+void MainWindow::setCircleToPath(int _x, int _y, int _r, ClipperLib::Path *path)        // Create a circle polygon Path
 {
     float x, y, r, n, dn;
     int x1, y1;
@@ -75,220 +85,195 @@ void MainWindow::Circle(int _x, int _y, int _r, Paths *path)        // Create a 
         x1 = round(x + r*cos(n));
         y1 = round(y + r*sin(n));
 
-        path[0][0] << IntPoint(x1, y1);
+        path->push_back(ClipperLib::IntPoint(x1, y1));
 
         n = n + dn;
     }
 
 }
 
-void MainWindow::resetPolygon()
+void MainWindow::reset()           // Delete mainPathArray and repaint
 {
-    mainPath->clear();
-    mainPath = new Paths(1);
-    mainPath->at(0) << IntPoint(100, 100) << IntPoint(500, 100) <<
-                   IntPoint(500, 400) << IntPoint(100, 400);
+    // Clear mainPathArray
+    mainPathArray->clear();
+    mainPathArray->shrink_to_fit();
 
-    QPolygon mainPath_poly;
-    for(unsigned int i = 0; i < mainPath->at(0).size(); i++) {
-        mainPath_poly.append(QPoint((int)mainPath->at(0).at(i).X, (int)mainPath->at(0).at(i).Y));
-    }
-
-    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem) {
+    // Clear old polygons from scene and free memory
+    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
+    {
         scene->removeItem(tmp_poly);
+        delete tmp_poly;                    // Dont know, need or not
     }
-
     polygonItem.clear();
+    polygonItem.squeeze();
 
-    for(unsigned int i = 0; i < mainPath->at(0).size(); i++) {
-        polygonItem.append(scene->addPolygon(mainPath_poly, pen, brush));
+    malloc_trim(0);     // Release free memory from the heap to OS
+
+    // Recreate mainPathArray and fill it with Rectangle
+    mainPathArray = new ClipperLib::Paths(1);
+    mainPathArray->at(0) << ClipperLib::IntPoint(100, 100) << ClipperLib::IntPoint(500, 100) <<
+                   ClipperLib::IntPoint(500, 400) << ClipperLib::IntPoint(100, 400);
+
+    for(unsigned int i = 0; i < mainPathArray->size(); i++)
+    {
+        QPolygon drawingPolygon;
+        for(unsigned int j = 0; j < mainPathArray->at(i).size(); j++)
+        {
+            // Add points from ClipperLib::Paths to QPolygon
+            drawingPolygon.append(QPoint((int)mainPathArray->at(i).at(j).X, (int)mainPathArray->at(i).at(j).Y));
+        }
+
+        // Add QGraphicsPolygonItem with QPolygon to QVector<QGraphicsPolygonItem*>
+        polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
     }
 
-    scene->removeItem(textItem);
+    qDebug().noquote() << mainPathArray->size() << "polygons";  // Print number of polygons to console
 
-    textItem = scene->addText(QString("Number of polygons: ") + QString::number(mainPath->size()));
-    textItem->setPos(5, 5);
+    polygonCountTextItem->setPlainText(QString("Number of polygons: ") + QString::number(mainPathArray->size()));
 
-    qDebug().noquote() << mainPath->size() << "polygons";  // Print number of polygons to console
 }
 
-void MainWindow::repaintPolygon()
+void MainWindow::repaintPolygon()           // Just repaint mainPathArray without delete
 {
-    busy = true;
-    if(reseted)
+    if(mainPathArray->empty())
     {
-        resetPolygon();
+        qDebug().noquote() << "mainPathArray is empty. Nothing to repaint.";
+        return;
     }
-    else
+
+    // Clear old polygons from scene and free memory
+    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
     {
-        QPolygon solution_poly[mainPath->size()];
-
-        for(unsigned int i = 0; i < mainPath->size(); i++)
-        {
-            for(unsigned int j = 0; j < mainPath->at(i).size(); j++)
-            {
-                solution_poly[i].append(QPoint((int)mainPath->at(i).at(j).X,
-                                               (int)mainPath->at(i).at(j).Y));
-            }
-        }
-
-        foreach (QGraphicsPolygonItem *tmp_poly, polygonItem) {
-            scene->removeItem(tmp_poly);
-        }
-
-        polygonItem.clear();
-
-        qWarning().noquote() << "after that";
-
-        // Draw all polygons after clipping
-        for(unsigned int i = 0; i < mainPath->size(); i++)
-        {
-            polygonItem.append(scene->addPolygon(solution_poly[i], pen, brush));
-        }
+        scene->removeItem(tmp_poly);
+        delete tmp_poly;                    // Dont know, need or not
     }
-    busy = false;
+    polygonItem.clear();
+    polygonItem.squeeze();
+
+    for(unsigned int i = 0; i < mainPathArray->size(); i++)
+    {
+        QPolygon drawingPolygon;
+        for(unsigned int j = 0; j < mainPathArray->at(i).size(); j++)
+        {
+            // Add points from ClipperLib::Paths to QPolygon
+            drawingPolygon.append(QPoint((int)mainPathArray->at(i).at(j).X, (int)mainPathArray->at(i).at(j).Y));
+        }
+        // Add QGraphicsPolygonItem with QPolygon to QVector<QGraphicsPolygonItem*>
+        polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
+    }
+
+}
+
+void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
+{
+    if(mainPathArray->empty())
+    {
+        qDebug().noquote() << "mainPathArray is empty. Do nothing.";
+        return;
+    }
+
+    qDebug().noquote() << "mainPathArray bytes:" << mainPathArray->size() * sizeof(mainPathArray->at(0));
+
+    ClipperLib::Path circlePath;         // Paths for circle's path
+    ClipperLib::Paths executedArray;     // Paths for proceeded polygon after clipping
+
+    setCircleToPath(mouse_x, mouse_y, brush_width, &circlePath);  // Clipping circle, position based on mouse position
+
+    // Clipping
+    ClipperLib::Clipper c;
+    c.AddPaths(*mainPathArray, ClipperLib::ptSubject, true);
+    c.AddPath(circlePath, ClipperLib::ptClip, true);
+    c.Execute(ClipperLib::ctDifference, executedArray, ClipperLib::pftEvenOdd , ClipperLib::pftEvenOdd);
+    c.Clear();
+
+    // Clear mainPathArray
+    mainPathArray->clear();
+    mainPathArray->shrink_to_fit();
+
+    qDebug().noquote() << "mainPathArray bytes after clear:" << mainPathArray->size() * sizeof(mainPathArray->at(0));
+
+    // Copy executedArray to mainPathArray
+    *mainPathArray = executedArray;
+
+    // Clear executedArray
+    executedArray.clear();
+    executedArray.shrink_to_fit();
+    qDebug().noquote() << "executedArray bytes after clear:" << executedArray.size() * sizeof(executedArray.at(0));
+
+    // Clear old polygons from scene and free memory
+    foreach (QGraphicsPolygonItem *tmp_poly, polygonItem)
+    {
+        scene->removeItem(tmp_poly);
+        delete tmp_poly;                    // Dont know, need or not
+    }
+    qDebug().noquote() << "polygonItem bytes before clear :" << polygonItem.size() * sizeof(polygonItem.at(0));
+    polygonItem.clear();
+    polygonItem.squeeze();
+    qDebug().noquote() << "polygonItem bytes after clear:" << polygonItem.size() * sizeof(polygonItem.at(0));
+
+    for(unsigned int i = 0; i < mainPathArray->size(); i++)
+    {
+        QPolygon drawingPolygon;
+        for(unsigned int j = 0; j < mainPathArray->at(i).size(); j++)
+        {
+            // Add points from ClipperLib::Paths to QPolygon
+            drawingPolygon.append(QPoint((int)mainPathArray->at(i).at(j).X, (int)mainPathArray->at(i).at(j).Y));
+        }
+        // Add QGraphicsPolygonItem with QPolygon to QVector<QGraphicsPolygonItem*>
+        polygonItem.append(scene->addPolygon(drawingPolygon, pen, brush));
+    }
+
+    qDebug().noquote() << "polygonItem bytes after append :" << polygonItem.size() * sizeof(polygonItem.at(0));
+    qDebug().noquote() << mainPathArray->size() << "polygons";  // Print number of polygons to console
+
+    polygonCountTextItem->setPlainText(QString("Number of polygons: ") + QString::number(mainPathArray->size()));
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    event->accept();                    // Accept mouse event
+    // Accept mouse event
+    event->accept();
+
     if(event->button() == Qt::MouseButton::LeftButton)
     {
         mouseLeftKeyPressed = true;
-        reseted = false;
     }
     else if(event->button() == Qt::MouseButton::RightButton)
     {
         mouseRightKeyPressed = true;
     }
 
-    if(mouseLeftKeyPressed  && !busy)
+    if(mouseLeftKeyPressed)
     {
-        int mouse_x = event->pos().x();     // Store mouse X
-        int mouse_y = event->pos().y();     // Store mouse Y
-
-        // Print mouse coordinates to console
-        qDebug().noquote() << "Mouse x/y:" << mouse_x << mouse_y;
-
-        Paths circlePath(1);    // Paths for circle's path
-        Paths new_solution;     // Paths for proceeded polygon after clipping
-
-        Circle(mouse_x, mouse_y, brush_width, &circlePath);  // Clipping circle, position based on mouse position
-
-        // Clipping
-        Clipper c;
-        c.AddPaths(*mainPath, ptSubject, true);
-        c.AddPaths(circlePath, ptClip, true);
-        c.Execute(ctDifference, new_solution, pftEvenOdd , pftEvenOdd);
-
-        *mainPath = new_solution;       // After clipping: clipped polygon = main polygon (current polygon)
-
-        // Polygons array for drawing
-        QPolygon solution_poly[new_solution.size()];
-
-        for(unsigned int i = 0; i < new_solution.size(); i++)
-        {
-            for(unsigned int j = 0; j < new_solution[i].size(); j++)
-            {
-                // Add points from Paths to polygons
-                solution_poly[i].append(QPoint((int)new_solution[i][j].X, (int)new_solution[i][j].Y));
-            }
-        }
-
-        foreach (QGraphicsPolygonItem *tmp_poly, polygonItem) {
-            scene->removeItem(tmp_poly);
-        }
-
-        polygonItem.clear();
-
-        // Draw all polygons after clipping
-        for(unsigned int i = 0; i < new_solution.size(); i++)
-        {
-            polygonItem.append(scene->addPolygon(solution_poly[i], pen, brush));
-        }
-
-        // Uncomment if you want to see a position of last mouse press
-        //scene->addEllipse(mouse_x - 5, mouse_y - 5, 10, 10, QPen(Qt::black), QBrush(Qt::gray));
-
-        // Remove and redraw number of polygons
-        scene->removeItem(textItem);
-
-        textItem = scene->addText(QString("Number of polygons: ") + QString::number(new_solution.size()));
-        textItem->setPos(5, 5);
-
-
-        qDebug().noquote() << new_solution.size() << "polygons";  // Print number of polygons to console
-
+        processTheTerrain(event->pos().x(), event->pos().y());
     }
 
+    // Pass the event further
     QMainWindow::mouseMoveEvent(event);
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    event->accept();
-    if(mouseLeftKeyPressed && !busy) {
-        int mouse_x = event->pos().x();     // Store mouse X
-        int mouse_y = event->pos().y();     // Store mouse Y
-
-        // Print mouse coordinates to console
-        qDebug().noquote() << "Mouse x/y:" << mouse_x << mouse_y;
-
-        Paths circlePath(1);    // Paths for circle's path
-        Paths new_solution;     // Paths for proceeded polygon after clipping
-
-        Circle(mouse_x, mouse_y, brush_width, &circlePath);  // Clipping circle, position based on mouse position
-
-        // Clipping
-        Clipper c;
-        c.AddPaths(*mainPath, ptSubject, true);
-        c.AddPaths(circlePath, ptClip, true);
-        c.Execute(ctDifference, new_solution, pftEvenOdd , pftEvenOdd);
-
-        *mainPath = new_solution;       // After clipping: clipped polygon = main polygon (current polygon)
-
-        // Polygons array for drawing
-        QPolygon solution_poly[new_solution.size()];
-
-        for(unsigned int i = 0; i < new_solution.size(); i++)
-        {
-            for(unsigned int j = 0; j < new_solution[i].size(); j++)
-            {
-                // Add points from Paths to polygons
-                solution_poly[i].append(QPoint((int)new_solution[i][j].X, (int)new_solution[i][j].Y));
-            }
-        }
-
-        foreach (QGraphicsPolygonItem *tmp_poly, polygonItem) {
-            scene->removeItem(tmp_poly);
-        }
-
-        polygonItem.clear();
-
-        // Draw all polygons after clipping
-        for(unsigned int i = 0; i < new_solution.size(); i++)
-        {
-            polygonItem.append(scene->addPolygon(solution_poly[i], pen, brush));
-        }
-
-        // Uncomment if you want to see a position of last mouse press
-        //scene->addEllipse(mouse_x - 5, mouse_y - 5, 10, 10, QPen(Qt::black), QBrush(Qt::gray));
-
-        // Remove and redraw number of polygons
-        scene->removeItem(textItem);
-
-        textItem = scene->addText(QString("Number of polygons: ") + QString::number(new_solution.size()));
-        textItem->setPos(5, 5);
-
-        qDebug().noquote() << new_solution.size() << "polygons";  // Print number of polygons to console
+    // If left mouse key not pressed ignore event
+    if(!mouseLeftKeyPressed)
+    {
+        event->ignore();
+    }
+    else
+    {
+        event->accept();
+        processTheTerrain(event->pos().x(), event->pos().y());
     }
 
+    // Pass the event further
     QMainWindow::mouseMoveEvent(event);
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
+    // Accept mouse event
     event->accept();
+
     if(event->button() == Qt::MouseButton::LeftButton)
     {
         mouseLeftKeyPressed = false;
@@ -298,6 +283,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
         mouseRightKeyPressed = false;
     }
 
+    // Pass the event further
     QMainWindow::mouseMoveEvent(event);
 }
 
@@ -309,13 +295,13 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
 
 void MainWindow::on_resetButton_clicked()
 {
-    reseted = true;
-    resetPolygon();
+    reset();
 }
 
 void MainWindow::on_radioButtonMagenta_toggled(bool checked)
 {
-    if(checked) {
+    if(checked)
+    {
         brush.setColor(Qt::magenta);
         pen.setColor(Qt::darkMagenta);
     }
@@ -335,7 +321,8 @@ void MainWindow::on_radioButtonGreen_toggled(bool checked)
 
 void MainWindow::on_radioButtonRed_toggled(bool checked)
 {
-    if(checked) {
+    if(checked)
+    {
         brush.setColor(Qt::red);
         pen.setColor(Qt::darkRed);
     }
@@ -345,7 +332,8 @@ void MainWindow::on_radioButtonRed_toggled(bool checked)
 
 void MainWindow::on_radioButtonOrange_toggled(bool checked)
 {
-    if(checked) {
+    if(checked)
+    {
         brush.setColor(QColor(255, 165, 0, 255));
         pen.setColor(QColor(238, 118, 0, 255));
     }
@@ -354,12 +342,14 @@ void MainWindow::on_radioButtonOrange_toggled(bool checked)
 
 void MainWindow::on_radioButtonSteelBlue_toggled(bool checked)
 {
-    if(checked) {
+    if(checked)
+    {
         brush.setColor(QColor(176, 196, 222, 255));
         pen.setColor(QColor(70, 130, 180, 255));
     }
     repaintPolygon();
 }
+
 
 
 
