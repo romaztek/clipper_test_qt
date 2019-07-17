@@ -52,6 +52,7 @@ MainWindow::~MainWindow()  // Destructor
 {
     mainPathArray->clear();
     mainPathArray->shrink_to_fit();
+    delete mainPathArray;
 
     foreach (QGraphicsPolygonItem *polyItem, polygonItemVector)
     {
@@ -67,7 +68,6 @@ MainWindow::~MainWindow()  // Destructor
 
     delete scene;
     delete ui;
-    delete mainPathArray;
 }
 
 void MainWindow::setCircleToPath(int _x, int _y, int _r, ClipperLib::Path *path)        // Create a circle polygon Path
