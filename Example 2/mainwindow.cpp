@@ -3,7 +3,7 @@
 
 /*
  *
- * This example does not delete a duplicate points, it  may cause qpolygon issues
+ * This example does not delete duplicate points, it  may cause qpolygon issues
  * (and poly2tri segfault, if you will using with it in this example)
  * Example 3 delete duplicate points using std::set
  *
