@@ -1,10 +1,10 @@
 *.o
-example_1
-example_2
-example_3
-example_4
-example_5
-example_6
+Example_1\example_1
+Example_2\example_2
+Example_3\example_3
+Example_4\example_4
+Example_5\example_5
+Example_6\example_6
 moc_*
 ui_mainwindow.h
 Makefile

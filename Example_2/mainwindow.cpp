@@ -108,7 +108,9 @@ void MainWindow::reset()           // Delete mainPathArray and repaint
     polygonItemVector.clear();
     polygonItemVector.squeeze();
 
+#ifdef Q_OS_LINUX
     malloc_trim(0);     // Release free memory from the heap to OS
+#endif
 
     // Recreate mainPathArray and fill it with Rectangle
     mainPathArray = new ClipperLib::Paths(1);
