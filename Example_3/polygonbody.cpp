@@ -2,7 +2,6 @@
 
 PolygonBody::PolygonBody(b2Vec2 *_vertices, size_t _count, b2Vec2 _position, b2World *_world) :
     world(_world),
-    vertices(_vertices),
     count(_count)
 {
     /*unsigned int step = (unsigned int)(count/8);
@@ -41,7 +40,6 @@ PolygonBody::PolygonBody(b2Vec2 *_vertices, size_t _count, b2Vec2 _position, b2W
 PolygonBody::~PolygonBody()
 {
     body->GetWorld()->DestroyBody(body);
-    vertices = nullptr;
     world = nullptr;
 }
 

@@ -1,10 +1,13 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <stdio.h>
+#define _USE_MATH_DEFINES
+
 #include <math.h>
+#include <malloc.h>
+
+#include <stdio.h>
 #include <set>
-#include <unordered_set>
 #include <iterator>
 #include <chrono>
 
@@ -82,9 +85,8 @@ public:
     ~MainWindow();
     Scene *scene = nullptr;
 
-    void setCirclePath(int _x, int _y, int _r, Paths *path);
+    void setCircleToPath(int _x, int _y, int _r, ClipperLib::Path *path) ;
 
-    void deleteCircles();
     void reset();
     void repaintPolygon();
 
@@ -107,11 +109,12 @@ private:
 
     QVector<QGraphicsPolygonItem*> triangleItemVector;
 
+    QGraphicsRectItem *groundRect;
+
     long resultProcessTime = 0;
     long minimumProcessTime = LONG_MAX;
     long maximumProcessTime = LONG_MIN;
 
-    bool reseted = true;
     bool busy = false;
     bool draw_triangles = false;
     bool mouseLeftKeyPressed = false;
@@ -132,16 +135,17 @@ private slots:
 
     void on_resetButton_clicked();
 
-    void on_radioButtonMagenta_toggled(bool checked);
-    void on_radioButtonGreen_toggled(bool checked);
-    void on_radioButtonRed_toggled(bool checked);
-    void on_radioButtonOrange_toggled(bool checked);
-    void on_radioButtonSteelBlue_toggled(bool checked);
-    void on_radioButtonCherry_toggled(bool checked);
-    void on_radioButtonWhite_toggled(bool checked);
-    void on_radioButtonGrey_toggled(bool checked);
+    void on_radioButtonMagenta_clicked();
+    void on_radioButtonGreen_clicked();
+    void on_radioButtonRed_clicked();
+    void on_radioButtonOrange_clicked();
+    void on_radioButtonSteelBlue_clicked();
+    void on_radioButtonCherry_clicked();
+    void on_radioButtonWhite_clicked();
+    void on_radioButtonGrey_clicked();
 
-    void on_radioButtonYes_toggled(bool checked);
+    void on_radioButtonYes_clicked();
+    void on_radioButtonNo_clicked();
 };
 
 

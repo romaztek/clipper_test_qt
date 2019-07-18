@@ -68,6 +68,9 @@ win32 {
     }
 }
 
+RESOURCES += \
+    res.qrc
+
 
 
 

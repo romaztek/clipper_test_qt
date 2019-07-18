@@ -16,7 +16,6 @@ class PolygonBody : public Ghost
         ~PolygonBody();
 
         size_t count;
-        b2Vec2 *vertices;
         b2World *world;
         b2Body *body;
 

@@ -201,6 +201,7 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
     // Clear executedArray
     executedArray.clear();
     executedArray.shrink_to_fit();
+
     qDebug().noquote() << "executedArray bytes after clear:" << executedArray.size() * sizeof(executedArray.at(0));
 
     // Clear old polygons from scene and free memory
@@ -301,57 +302,44 @@ void MainWindow::on_resetButton_clicked()
     reset();
 }
 
-void MainWindow::on_radioButtonMagenta_toggled(bool checked)
+void MainWindow::on_radioButtonMagenta_clicked()
 {
-    if(checked)
-    {
-        brush.setColor(Qt::magenta);
-        pen.setColor(Qt::darkMagenta);
-    }
+    brush.setColor(Qt::magenta);
+    pen.setColor(Qt::darkMagenta);
     repaintPolygon();
 }
 
 
-void MainWindow::on_radioButtonGreen_toggled(bool checked)
+void MainWindow::on_radioButtonGreen_clicked()
 {
-    if(checked)
-    {
-        brush.setColor(Qt::green);
-        pen.setColor(Qt::darkGreen);
-    }
+    brush.setColor(Qt::green);
+    pen.setColor(Qt::darkGreen);
     repaintPolygon();
 }
 
-void MainWindow::on_radioButtonRed_toggled(bool checked)
+void MainWindow::on_radioButtonRed_clicked()
 {
-    if(checked)
-    {
-        brush.setColor(Qt::red);
-        pen.setColor(Qt::darkRed);
-    }
+    brush.setColor(Qt::red);
+    pen.setColor(Qt::darkRed);
     repaintPolygon();
 }
 
 
-void MainWindow::on_radioButtonOrange_toggled(bool checked)
+void MainWindow::on_radioButtonOrange_clicked()
 {
-    if(checked)
-    {
-        brush.setColor(QColor(255, 165, 0, 255));
-        pen.setColor(QColor(238, 118, 0, 255));
-    }
+    brush.setColor(QColor(255, 165, 0, 255));
+    pen.setColor(QColor(238, 118, 0, 255));
     repaintPolygon();
 }
 
-void MainWindow::on_radioButtonSteelBlue_toggled(bool checked)
+void MainWindow::on_radioButtonSteelBlue_clicked()
 {
-    if(checked)
-    {
-        brush.setColor(QColor(176, 196, 222, 255));
-        pen.setColor(QColor(70, 130, 180, 255));
-    }
+    brush.setColor(QColor(176, 196, 222, 255));
+    pen.setColor(QColor(70, 130, 180, 255));
     repaintPolygon();
 }
+
+
 
 
 

@@ -66,11 +66,11 @@ private slots:
 
     void on_resetButton_clicked();
 
-    void on_radioButtonMagenta_toggled(bool checked);
-    void on_radioButtonGreen_toggled(bool checked);
-    void on_radioButtonRed_toggled(bool checked);
-    void on_radioButtonOrange_toggled(bool checked);
-    void on_radioButtonSteelBlue_toggled(bool checked);
+    void on_radioButtonMagenta_clicked();
+    void on_radioButtonGreen_clicked();
+    void on_radioButtonRed_clicked();
+    void on_radioButtonOrange_clicked();
+    void on_radioButtonSteelBlue_clicked();
 };
 
 #endif // MAINWINDOW_H

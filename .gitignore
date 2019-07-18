@@ -5,6 +5,8 @@ Example_3\example_3
 Example_4\example_4
 Example_5\example_5
 Example_6\example_6
+Debug
+Release
 moc_*
 ui_mainwindow.h
 Makefile
