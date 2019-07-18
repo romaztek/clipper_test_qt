@@ -65,15 +65,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     scene = new Scene(0, 0, toB2(640), toB2(480), world);
 
-    QGraphicsView *view = this->findChild<QGraphicsView*>("graphicsView");
-    view->setScene(scene);
-
-    view->viewport()->setFocus(Qt::MouseFocusReason);
-    view->viewport()->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->graphicsView->setScene(scene);
+    ui->graphicsView->setAttribute(Qt::WA_TransparentForMouseEvents);
 
     mainPathArray = new Paths(1);
     mainPathArray->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
                    IntPoint(600, 420) << IntPoint(40, 420);
+
+    pen.setCosmetic(true);
+    pen.setColor(Qt::darkMagenta);
+    pen.setWidth(2);
+
+    brush.setStyle(Qt::SolidPattern);
+    brush.setColor(Qt::magenta);
 
     QGraphicsRectItem *groundRect = new QGraphicsRectItem(0, this->height() - 80, this->width() - 1,  20 - 2);
     QPen groundRectPen;
@@ -94,11 +98,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     b2Vec2 myPolygonBodyVertices[mainPathArray->at(0).size()];
 
-    QPolygon mainPath_poly;
+    QPolygon drawingPoly;
 
     for(unsigned int i = 0; i < mainPathArray->at(0).size(); i++)
     {
-        mainPath_poly.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
+        drawingPoly.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
 
         myPolygonBodyVertices[i].x = toB2((int)mainPathArray->at(0).at(i).X);
         myPolygonBodyVertices[i].y = toB2((int)mainPathArray->at(0).at(i).Y);
@@ -106,14 +110,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     myPolygonBodies.push_back(new PolygonBody(myPolygonBodyVertices, 4, b2Vec2(0, 0), world));
 
-    pen.setCosmetic(true);
-    pen.setColor(Qt::darkMagenta);
-    pen.setWidth(2);
-
-    brush.setStyle(Qt::SolidPattern);
-    brush.setColor(Qt::magenta);
-
-    polygonItemVector.append(scene->addPolygon(mainPath_poly, pen, brush));
+    polygonItemVector.append(scene->addPolygon(drawingPoly, pen, brush));
 
     // Draw information
     informationTextItem = scene->addText(QString("Left click: edit terrain\nRight click: add circle body"));
@@ -172,7 +169,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
-MainWindow::~MainWindow()
+MainWindow::~MainWindow()  // Destructor
 {
     mainPathArray->clear();
     mainPathArray->shrink_to_fit();
@@ -259,11 +256,11 @@ void MainWindow::reset()
 
     b2Vec2 myPolygonBodyVertices[mainPathArray->at(0).size()];
 
-    QPolygon mainPath_poly;
+    QPolygon drawingPoly;
 
     for(unsigned int i = 0; i < mainPathArray->at(0).size(); i++)
     {
-        mainPath_poly.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
+        drawingPoly.append(QPoint((int)mainPathArray->at(0).at(i).X, (int)mainPathArray->at(0).at(i).Y));
 
         myPolygonBodyVertices[i].x = toB2((int)mainPathArray->at(0).at(i).X);
         myPolygonBodyVertices[i].y = toB2((int)mainPathArray->at(0).at(i).Y);
@@ -278,7 +275,7 @@ void MainWindow::reset()
     polygonItemVector.clear();
 
     for(unsigned int i = 0; i < mainPathArray->at(0).size(); i++) {
-        polygonItemVector.append(scene->addPolygon(mainPath_poly, pen, brush));
+        polygonItemVector.append(scene->addPolygon(drawingPoly, pen, brush));
     }
 
     // Redraw number of circle bodies
