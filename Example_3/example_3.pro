@@ -17,6 +17,8 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
+QMAKE_CXXFLAGS += -ggdb3
+
 CONFIG += c++11
 
 # You can also make your code fail to compile if you use deprecated APIs.
@@ -25,6 +27,14 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 CONFIG(release, debug|release): DEFINES += QT_NO_DEBUG_OUTPUT
+
+release: DESTDIR = $$PWD/Release
+debug:   DESTDIR = $$PWD/Debug
+
+OBJECTS_DIR = $$DESTDIR/obj
+MOC_DIR = $$DESTDIR/moc
+RCC_DIR = $$DESTDIR/qrc
+UI_DIR = $$DESTDIR/ui
 
 SOURCES += main.cpp\
         mainwindow.cpp \

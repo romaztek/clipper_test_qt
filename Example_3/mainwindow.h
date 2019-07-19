@@ -18,7 +18,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
-#include <QGraphicsTextItem>
+#include <QGraphicsSimpleTextItem>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsPolygonItem>
 #include <QMouseEvent>
@@ -48,6 +48,8 @@ public:
     ~Circle();
     b2Body *getBody() { return body; }
 
+    bool needDelete = false;
+
 private:
     b2Body *body;
 
@@ -62,6 +64,7 @@ class Scene : public QGraphicsScene
 
 public:
     Scene(qreal x, qreal y, qreal width, qreal height, b2World *world);
+    ~Scene();
 
     bool locked = false;
 
@@ -98,6 +101,8 @@ private:
 
     b2World *world;
 
+    Wall *bottomGround;
+
     QPen pen;
     QBrush brush;
 
@@ -115,7 +120,6 @@ private:
     long minimumProcessTime = LONG_MAX;
     long maximumProcessTime = LONG_MIN;
 
-    bool busy = false;
     bool draw_triangles = false;
     bool mouseLeftKeyPressed = false;
     bool mouseRightKeyPressed = false;
