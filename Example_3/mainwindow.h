@@ -40,15 +40,20 @@ namespace Ui {
 class MainWindow;
 }
 
+class Scene;
+
 class Circle : public QObject, public QGraphicsEllipseItem
 {
     Q_OBJECT
 public:
-    Circle(qreal radius, QPointF initPos, b2World *world);
+    Circle(qreal radius, QPointF initPos, b2World *world, Scene *scene);
     ~Circle();
     b2Body *getBody() { return body; }
 
     bool needDelete = false;
+    Scene *scene;
+
+    void setColor(int color);
 
 private:
     b2Body *body;
@@ -67,6 +72,8 @@ public:
     ~Scene();
 
     bool locked = false;
+
+    void clearCircles();
 
 public slots:
     void advance();

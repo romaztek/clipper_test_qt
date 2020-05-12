@@ -22,7 +22,7 @@ QGraphicsSimpleTextItem *lastProcessDurationTextItem;
 QGraphicsSimpleTextItem *minimumProcessDurationTextItem;
 QGraphicsSimpleTextItem *maximumProcessDurationTextItem;
 
-QVector<Circle*> coloredCirclesVector;
+QVector<QSharedPointer<Circle>> coloredCirclesVector;
 
 // Global variables end
 
@@ -34,7 +34,7 @@ qreal toB2(qreal value) {
     return value/SCALE;
 }
 
-auto compPoint = [&](p2t::Point* const pointA, p2t::Point* const pointB) -> bool
+auto compPoint = [](p2t::Point* const pointA, p2t::Point* const pointB) -> bool
 {
     if (pointA->x < pointB->x) return true;
     if (pointA->x > pointB->x) return false;
@@ -130,7 +130,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mainPathArray = new Paths(1);
     mainPathArray->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
-                   IntPoint(600, 420) << IntPoint(40, 420);
+                            IntPoint(600, 420) << IntPoint(40, 420);
 
 
     QPen groundRectPen;
@@ -148,7 +148,7 @@ MainWindow::MainWindow(QWidget *parent) :
     const float bottomGroundHeight_B2 = toB2(20);
 
     bottomGround = new Wall(bottomGroundX_B2, bottomGroundY_B2,
-                                  bottomGroundWidth_B2, bottomGroundHeight_B2, 10, world);
+                            bottomGroundWidth_B2, bottomGroundHeight_B2, 10, world);
 
     b2Vec2 myPolygonBodyVertices[mainPathArray->at(0).size()];
 
@@ -184,7 +184,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Draw number of thrown duplicate points in last processing (0 at start)
     numberOfThrownDuplicatePointsTextItem = scene->addSimpleText(QString("Number of thrown duplicate points in last processing: ")
-                                                             + QString::number(numberOfThrownDuplicatePoints));
+                                                                 + QString::number(numberOfThrownDuplicatePoints));
     numberOfThrownDuplicatePointsTextItem->setPos(5, 45);
 
 
@@ -352,7 +352,7 @@ void MainWindow::reset()
     // Recreate mainPathArray and fill it with Rectangle
     mainPathArray = new ClipperLib::Paths(1);
     mainPathArray->at(0) << IntPoint(40, 200) << IntPoint(600, 200) <<
-                   IntPoint(600, 420) << IntPoint(40, 420);\
+                            IntPoint(600, 420) << IntPoint(40, 420);\
 
     b2Vec2 myPolygonBodyVertices[mainPathArray->at(0).size()];
 
@@ -384,7 +384,7 @@ void MainWindow::reset()
     // Redraw number of thrown duplicate points in last processing
     numberOfThrownDuplicatePoints = 0;
     numberOfThrownDuplicatePointsTextItem->setText(QString("Number of thrown duplicate points in last processing: ")
-                                                             + QString::number(numberOfThrownDuplicatePoints));
+                                                   + QString::number(numberOfThrownDuplicatePoints));
 
     lastProcessDurationTextItem->setText(
                 QString("Process duration: \n") + QString("Last: \n") +
@@ -556,7 +556,7 @@ void MainWindow::processTheTerrain(int mouse_x, int mouse_y)
                 triangle_vertices[dz].y = toB2(p->y);
 
                 if(draw_triangles)
-                trianglePoly.append(QPoint(p->x, p->y));
+                    trianglePoly.append(QPoint(p->x, p->y));
 
                 p = nullptr;
             }
@@ -668,9 +668,13 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
     if(mouseRightKeyPressed)
     {
-        coloredCirclesVector.append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
-        coloredCirclesVector.last()->setParent(scene);
-        scene->addItem(coloredCirclesVector.last());
+        coloredCirclesVector.append(QSharedPointer<Circle>(new Circle(toB2(CIRCLE_RADIUS),
+                                               QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world, scene)));
+        scene->addItem(coloredCirclesVector.last().data());
+
+        //coloredCirclesVector.last()->setParent(scene);
+
+
         numberOfCircles++;
 
         // Draw number of circle bodies
@@ -697,9 +701,11 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
     if(mouseRightKeyPressed)
     {
-        coloredCirclesVector.append(new Circle(toB2(CIRCLE_RADIUS), QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world));
-        coloredCirclesVector.last()->setParent(scene);
-        scene->addItem(coloredCirclesVector.last());
+        coloredCirclesVector.append(QSharedPointer<Circle>(new Circle(toB2(CIRCLE_RADIUS),
+                                               QPointF(toB2(event->pos().x()), toB2(event->pos().y())), world, scene)));
+        scene->addItem(coloredCirclesVector.last().data());
+
+
         numberOfCircles++;
 
         // Draw number of circle bodies
@@ -751,7 +757,6 @@ void MainWindow::on_radioButtonMagenta_clicked()
     repaintPolygon();
 }
 
-
 void MainWindow::on_radioButtonGreen_clicked()
 {
     brush.setColor(Qt::green);
@@ -765,7 +770,6 @@ void MainWindow::on_radioButtonRed_clicked()
     pen.setColor(Qt::darkRed);
     repaintPolygon();
 }
-
 
 void MainWindow::on_radioButtonOrange_clicked()
 {
@@ -822,10 +826,11 @@ Scene::~Scene()
 {
     if(need_delete_circles && numberOfCircles > 0)
     {
-        for(Circle *circle : coloredCirclesVector)
+        for(QSharedPointer<Circle> circle : coloredCirclesVector)
         {
             numberOfCircles--;
-            this->removeItem(circle);
+            circle.clear();
+            //this->removeItem(circle);
             //delete circle;
         }
         need_delete_circles = false;
@@ -835,56 +840,90 @@ Scene::~Scene()
     }
 }
 
+void Scene::clearCircles()
+{
+
+}
+
 void Scene::advance()
 {
+    if(need_delete_circles)
+    {
+        coloredCirclesVector.clear();
+        need_delete_circles = false;
+        return;
+    }
     if(numberOfCircles > 0)
     {
-        for(Circle *circle : coloredCirclesVector)
+        for(QSharedPointer<Circle> circle : coloredCirclesVector)
         {
-            if(circle->needDelete)
+            Circle *tmp = circle.data();
+            if(tmp->needDelete)
             {
-                this->removeItem(circle);
-                coloredCirclesVector.removeOne(circle);
-                //delete circle;
-
                 numberOfCircles--;
+                coloredCirclesVector.removeOne(circle);
 
                 // Draw number of circle bodies
                 numberOfCircleBodiesTextItem->setText(QString("Number of circle bodies: ") + QString::number(numberOfCircles));
                 numberOfCircleBodiesTextItem->setPos(this->width() - 5 - numberOfCircleBodiesTextItem->boundingRect().width(), 45);
+
                 //qDebug().noquote() << " circle deleted";
             }
-            else if(need_delete_circles)
-            {
-                this->removeItem(circle);
-                //delete circle;
-
-                numberOfCircles = 0;
-            }
         }
-        if(need_delete_circles)
-        {
-            coloredCirclesVector.clear();
-            need_delete_circles = false;
-        }
-        coloredCirclesVector.squeeze();
     }
     world->Step(timeStep, velocityIterations, positionIterations);
 
     //qDebug().noquote() << "scene items:" << this->items().count();
+    qDebug().noquote() << "array size:" << coloredCirclesVector.size();
 
     QGraphicsScene::advance();
 }
 
-Circle::Circle(qreal radius, QPointF initPos, b2World *world)
+Circle::Circle(qreal radius, QPointF initPos, b2World *world, Scene *scene)
     : QGraphicsEllipseItem(0)
 {
+    this->scene = scene;
     QPen circlePen;
     circlePen.setColor(Qt::black);
     //circlePen.setStyle(Qt::DotLine);
     setPen(circlePen);
 
     int color = qrand() % ((10 + 1) - 1) + 1; // random min 1, max 10
+
+    setColor(color);
+
+    setRect(-fromB2(radius), -fromB2(radius), fromB2(radius*2), fromB2(radius*2));
+    setPos(fromB2(initPos.x()), fromB2(initPos.y()));
+
+    b2BodyDef heroCircleBodyDef;
+    heroCircleBodyDef.type = b2_dynamicBody;
+    heroCircleBodyDef.position = b2Vec2(initPos.x(), initPos.y());
+    heroCircleBodyDef.linearDamping = 0.5f;
+
+    body = world->CreateBody(&heroCircleBodyDef);
+
+    b2CircleShape circle;
+    circle.m_radius = radius;
+
+    b2FixtureDef FixtureDef;
+    FixtureDef.density = 0.2f;
+    FixtureDef.friction = 0.2f;
+    FixtureDef.restitution = 0.7f;
+    FixtureDef.shape = &circle;
+
+    body->CreateFixture(&FixtureDef);
+    body->SetUserData(this);
+
+}
+
+Circle::~Circle()
+{
+    body->GetWorld()->DestroyBody(body);
+    this->scene->removeItem(this);
+}
+
+void Circle::setColor(int color)
+{
     switch(color)
     {
     case 1:
@@ -921,35 +960,6 @@ Circle::Circle(qreal radius, QPointF initPos, b2World *world)
         setBrush(QBrush(Qt::cyan));
         break;
     }
-
-    setRect(-fromB2(radius), -fromB2(radius), fromB2(radius*2), fromB2(radius*2));
-    setPos(fromB2(initPos.x()), fromB2(initPos.y()));
-
-    b2BodyDef heroCircleBodyDef;
-    heroCircleBodyDef.type = b2_dynamicBody;
-    heroCircleBodyDef.position = b2Vec2(initPos.x(), initPos.y());
-    heroCircleBodyDef.linearDamping = 0.5f;
-
-    body = world->CreateBody(&heroCircleBodyDef);
-
-    b2CircleShape circle;
-    circle.m_radius = radius;
-
-    b2FixtureDef FixtureDef;
-    FixtureDef.density = 0.2f;
-    FixtureDef.friction = 0.2f;
-    FixtureDef.restitution = 0.7f;
-    FixtureDef.shape = &circle;
-
-    body->CreateFixture(&FixtureDef);
-    body->SetUserData(this);
-
-}
-
-Circle::~Circle()
-{
-    //this->scene()->removeItem(this);
-    body->GetWorld()->DestroyBody(body);
 }
 
 void Circle::advance(int phase)
